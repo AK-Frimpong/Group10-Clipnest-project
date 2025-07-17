@@ -2,16 +2,16 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Animated,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View
+    Animated,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 
 export default function LoginScreen() {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    color: '#fff',
+    color: '#F3FAF8',
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 30,
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   socialButtonText: {
-    color: '#000000',
+    color: '#181D1C',
     fontSize: 16,
     fontWeight: '500',
   },
   or: {
-    color: '#aaa',
+    color: '#F3FAF8',
     marginVertical: 15,
     fontSize: 14,
     alignSelf: 'center',
@@ -231,11 +231,11 @@ const styles = StyleSheet.create({
   input: {
     width: 344,
     height: 50,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     backgroundColor: 'transparent',
     marginBottom: 8,
     fontSize: 16,

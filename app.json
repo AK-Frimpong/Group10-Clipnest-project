@@ -1,20 +1,24 @@
 {
   "expo": {
-    "name": "pinterest-clone",
-    "slug": "pinterest-clone",
+    "name": "Clipnest",
+    "slug": "clipnest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "pinterestclone",
+    "scheme": "clipnest",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.clipnest.app",
+      "buildNumber": "1.0.0"
     },
     "android": {
+      "package": "com.clipnest.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#181D1C"
       },
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan"
@@ -29,10 +33,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/clipnest_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#181D1C"
         }
       ],
       "expo-font",

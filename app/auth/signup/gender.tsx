@@ -1,12 +1,12 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Image,
+    Image,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 
 export default function GenderScreen() {
   const router = useRouter();
@@ -123,12 +123,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 20,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     height: 43,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#27403B',
   },
   genderButtonText: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 16,
   },
   nextButton: {
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   nextButtonText: {
-    color: '#000000',
+    color: '#181D1C',
     fontSize: 18,
   },
   form: {

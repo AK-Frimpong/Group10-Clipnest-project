@@ -5,11 +5,11 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
+    Image,
+    Pressable,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 
 const months = [
@@ -247,16 +247,15 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
-    marginBottom: 10,
-    marginTop: 100,
+    marginBottom: 15,
   },
   errorText: {
     color: '#FF6B6B',
@@ -281,8 +280,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   pickerItem: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    color: '#F3FAF8',
+    fontSize: 22,
     height: 150,
   },
   fadedOverlay: {
@@ -305,7 +304,7 @@ const styles = StyleSheet.create({
     bottom: '30%',
   },
   nextButtonText: {
-    color: '#000000',
+    color: '#181D1C',
     fontSize: 18,
   },
   form: {

@@ -2,14 +2,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View,
+    Image,
+    Keyboard,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 
 export default function PasswordScreen() {
@@ -200,12 +200,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 15,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: 344,
     height: 50,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
     flexDirection: 'row',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     paddingHorizontal: 15,
-    color: '#FFFFFF',
+    color: '#F3FAF8',
   },
   eyeIcon: {
     padding: 10,
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   nextButtonText: {
+    color: '#181D1C',
     fontSize: 18,
   },
   form: {

@@ -209,12 +209,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 15,
@@ -227,12 +227,12 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingRight: 45,
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     backgroundColor: 'transparent',
   },
   inputError: {
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   nextButtonText: {
-    color: '#000000',
+    color: '#181D1C',
     fontSize: 18,
   },
   form: {

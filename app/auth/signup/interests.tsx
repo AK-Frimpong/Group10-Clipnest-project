@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 export default function InterestsScreen() {
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
   },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   imageTitle: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 5,
@@ -253,8 +253,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#333333',
   },
   nextButtonText: {
-    color: '#000000',
-    fontSize: 16,
+    color: '#181D1C',
+    fontSize: 18,
     fontWeight: '600',
   },
   disabledButtonText: {

@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View,
+    Image,
+    Keyboard,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 
 export default function EmailScreen() {
@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     backgroundColor: '#AAAAAA',
     marginTop: -1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 15,
@@ -147,11 +147,11 @@ const styles = StyleSheet.create({
   input: {
     width: 344,
     height: 50,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     backgroundColor: 'transparent',
     marginBottom: 8,
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   nextButtonText: {
-    color: '#000000',
+    color: '#181D1C',
     fontSize: 18,
   },
   form: {
