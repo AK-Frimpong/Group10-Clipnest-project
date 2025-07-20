@@ -15,8 +15,15 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+<<<<<<< HEAD
       "bundleIdentifier": "com.clipnest.app",
       "buildNumber": "1.0.0"
+=======
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow this app to use your camera.",
+        "NSPhotoLibraryUsageDescription": "Allow this app to access your photos."
+      }
+>>>>>>> a41f054cea401840f588ef914c0a45222a6afe7d
     },
     "android": {
       "package": "com.clipnest.app",
@@ -26,7 +33,11 @@
         "backgroundColor": "#181D1C"
       },
       "edgeToEdgeEnabled": true,
+<<<<<<< HEAD
       "softwareKeyboardLayoutMode": "pan"
+=======
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+>>>>>>> a41f054cea401840f588ef914c0a45222a6afe7d
     },
     "web": {
       "bundler": "metro",
