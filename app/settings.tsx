@@ -33,7 +33,7 @@ export default function SettingsScreen() {
             <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#fff' : '#000'} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#000' }]}>Settings</Text>
-          <View style={{ width: 28 }} /> {/* Placeholder to center the title */}
+          <View style={{ width: 28 }} />
         </View>
 
         {/* Settings options */}

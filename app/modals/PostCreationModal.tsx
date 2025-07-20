@@ -31,7 +31,7 @@ export default function PostCreationModal({ visible, onClose }: Props) {
     >
       <View style={styles.overlay}>
         <Pressable style={styles.background} onPress={onClose} />
-        <View style={[styles.modalContent, { backgroundColor: modalBg }]}> {/* theme color */}
+        <View style={[styles.modalContent, { backgroundColor: modalBg }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={32} color={iconColor} />
@@ -40,15 +40,15 @@ export default function PostCreationModal({ visible, onClose }: Props) {
             <View style={{ width: 32 }} />
           </View>
           <View style={styles.iconRow}>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
               <MaterialCommunityIcons name="pin" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Pin</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
               <MaterialCommunityIcons name="collage" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Collage</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
               <MaterialIcons name="dashboard" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Board</Text>
             </TouchableOpacity>

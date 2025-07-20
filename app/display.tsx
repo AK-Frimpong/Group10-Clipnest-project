@@ -2,11 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useThemeContext } from '../theme/themecontext';
 
@@ -79,7 +79,7 @@ export default function DisplayScreen() {
           >
             Display
           </Text>
-          <View style={{ width: 28 }} /> {/* spacer */}
+          <View style={{ width: 28 }} />
         </View>
 
         {/* Theme Options */}

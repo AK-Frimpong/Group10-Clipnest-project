@@ -3,10 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import {
+    Alert,
     Animated,
     Easing,
     Image,
     KeyboardAvoidingView,
+    Linking,
     Modal,
     Platform,
     StyleSheet,
@@ -82,7 +84,18 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     closePicOptions();
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      alert('Permission to access gallery is required!');
+      if (permissionResult.canAskAgain === false) {
+        Alert.alert(
+          'Permission required',
+          'Please enable gallery access in your device settings.',
+          [
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            { text: 'Cancel', style: 'cancel' }
+          ]
+        );
+      } else {
+        Alert.alert('Permission to access gallery is required!');
+      }
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -98,7 +111,18 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     closePicOptions();
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
-      alert('Permission to access camera is required!');
+      if (permissionResult.canAskAgain === false) {
+        Alert.alert(
+          'Permission required',
+          'Please enable camera access in your device settings.',
+          [
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            { text: 'Cancel', style: 'cancel' }
+          ]
+        );
+      } else {
+        Alert.alert('Permission to access camera is required!');
+      }
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
