@@ -44,7 +44,6 @@ export default function BirthdateScreen() {
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [validDays, setValidDays] = useState(defaultDays);
-  const [error, setError] = useState('');
 
   // Update available days when month or year changes
   useEffect(() => {
@@ -70,13 +69,11 @@ export default function BirthdateScreen() {
 
     // Check if date is valid
     if (isNaN(birthDate.getTime())) {
-      setError('Please select a valid date');
       return false;
     }
 
     // Check if date is in the future
     if (birthDate > new Date()) {
-      setError('Birthdate cannot be in the future');
       return false;
     }
 
@@ -88,17 +85,14 @@ export default function BirthdateScreen() {
 
     // Check minimum age
     if (age < MIN_AGE || (age === MIN_AGE && (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)))) {
-      setError(`You must be at least ${MIN_AGE} years old to sign up`);
       return false;
     }
 
     // Check maximum age
     if (age > MAX_AGE) {
-      setError(`Age cannot exceed ${MAX_AGE} years`);
       return false;
     }
 
-    setError('');
     return true;
   };
 
@@ -136,9 +130,6 @@ export default function BirthdateScreen() {
         {/* Title */}
         <Text style={styles.title}>What's your birthdate?</Text>
 
-        {/* Error message */}
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
         {/* Picker container */}
         <View style={styles.pickerWrapper}>
           <View style={styles.fadedOverlay} pointerEvents="none" />
@@ -147,7 +138,6 @@ export default function BirthdateScreen() {
               selectedValue={selectedMonth}
               onValueChange={(itemValue) => {
                 setSelectedMonth(itemValue);
-                setError('');
               }}
               style={styles.picker}
               itemStyle={styles.pickerItem}
@@ -162,7 +152,6 @@ export default function BirthdateScreen() {
               selectedValue={selectedDay}
               onValueChange={(itemValue) => {
                 setSelectedDay(itemValue);
-                setError('');
               }}
               style={styles.picker}
               itemStyle={styles.pickerItem}
@@ -177,7 +166,6 @@ export default function BirthdateScreen() {
               selectedValue={selectedYear}
               onValueChange={(itemValue) => {
                 setSelectedYear(itemValue);
-                setError('');
               }}
               style={styles.picker}
               itemStyle={styles.pickerItem}
@@ -255,14 +243,7 @@ const styles = StyleSheet.create({
     color: '#F3FAF8',
     fontSize: 18,
     textAlign: 'center',
-    marginBottom: 15,
-  },
-  errorText: {
-    color: '#FF6B6B',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 10,
-    width: 300,
+    marginBottom: 30,
   },
   pickerWrapper: {
     height: 150,
@@ -309,7 +290,7 @@ const styles = StyleSheet.create({
   },
   form: {
     position: 'absolute',
-    top: 20,
+    top: 120,
     width: '100%',
     alignItems: 'center',
   },

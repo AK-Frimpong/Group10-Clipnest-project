@@ -1,6 +1,6 @@
-// app/index.tsx
-import { Redirect } from 'expo-router';
+import React from 'react';
+import SplashScreen from './SplashScreen';
 
-export default function Index() {
-  return <Redirect href="/auth/get-started" />;
+export default function InitialScreen() {
+  return <SplashScreen />;
 }

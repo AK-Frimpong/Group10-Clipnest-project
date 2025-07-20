@@ -1,23 +1,22 @@
 // modals/EditProfileModal.tsx
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Image,
-  Animated,
-  Easing,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import {
+    Animated,
+    Easing,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
+} from 'react-native';
 import { useThemeContext } from '../../theme/themecontext'; // 🔥 Theme hook
 
 interface EditProfileModalProps {
@@ -26,12 +25,13 @@ interface EditProfileModalProps {
   currentName: string;
   currentUsername: string;
   currentBio: string;
+  currentAvatar: string | null;
   onSave: (
     newName: string,
     newUsername: string,
     newBio: string,
-    showPins: boolean,
-    newProfilePicUri?: string
+    newAvatar: string | null,
+    showPins: boolean
   ) => void;
 }
 
@@ -41,6 +41,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   currentName,
   currentUsername,
   currentBio,
+  currentAvatar,
   onSave,
 }) => {
   const [name, setName] = useState(currentName);
@@ -53,7 +54,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const { isDarkMode } = useThemeContext(); // 🌙 get dark mode flag
 
   const handleSave = () => {
-    onSave(name, username, bio, showPins, profilePicUri);
+    onSave(name, username, bio, profilePicUri || null, showPins);
     onClose();
   };
 
@@ -113,6 +114,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     outputRange: [300, 0],
   });
 
+  useEffect(() => {
+    setName(currentName);
+    setUsername(currentUsername);
+    setBio(currentBio);
+    setProfilePicUri(currentAvatar || undefined);
+  }, [currentName, currentUsername, currentBio, currentAvatar, visible]);
+
   return (
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
@@ -126,7 +134,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <View
           style={[
             styles.modalContent,
-            { backgroundColor: isDarkMode ? '#1e1e1e' : 'white' },
+            { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' },
           ]}
         >
           <TouchableOpacity onPress={onClose} style={styles.exitButton}>
@@ -153,7 +161,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             style={[
               styles.input,
               {
-                backgroundColor: isDarkMode ? '#2a2a2a' : '#fff',
+                backgroundColor: isDarkMode ? '#252A29' : '#E2F1ED',
                 color: isDarkMode ? '#fff' : '#000',
                 borderColor: isDarkMode ? '#444' : '#ccc',
               },
@@ -169,7 +177,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             style={[
               styles.input,
               {
-                backgroundColor: isDarkMode ? '#2a2a2a' : '#fff',
+                backgroundColor: isDarkMode ? '#252A29' : '#E2F1ED',
                 color: isDarkMode ? '#fff' : '#000',
                 borderColor: isDarkMode ? '#444' : '#ccc',
               },
@@ -185,7 +193,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             style={[
               styles.input,
               {
-                backgroundColor: isDarkMode ? '#2a2a2a' : '#fff',
+                backgroundColor: isDarkMode ? '#252A29' : '#E2F1ED',
                 color: isDarkMode ? '#fff' : '#000',
                 borderColor: isDarkMode ? '#444' : '#ccc',
               },
@@ -201,7 +209,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <Switch value={showPins} onValueChange={setShowPins} />
           </View>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.saveButton, { backgroundColor: '#4EE0C1' }]} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Done</Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +225,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               styles.picOptionsContainer,
               {
                 transform: [{ translateY: slideUp }],
-                backgroundColor: isDarkMode ? '#2a2a2a' : '#fff',
+                backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8',
               },
             ]}
           >
@@ -335,6 +343,42 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  avatarEdit: {
+    alignSelf: 'center',
+    marginBottom: 18,
+  },
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+  },
+  editIconCircle: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4EE0C1',
+    borderRadius: 12,
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  removeIconCircle: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#E74C3C',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+    zIndex: 2,
   },
 });
 

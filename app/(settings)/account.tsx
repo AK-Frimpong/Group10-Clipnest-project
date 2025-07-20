@@ -1,35 +1,23 @@
+import { useThemeContext } from '@/theme/themecontext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useThemeContext } from '../theme/themecontext';
-import { logout } from './api/auth';
 
-export default function SettingsScreen() {
+export default function AccountSettingsScreen() {
   const { isDarkMode } = useThemeContext();
-  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await logout();
-      router.replace('/auth/login' as any);
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setLoading(false);
-      setShowLogoutModal(false);
-    }
+  const handleDeleteAccount = () => {
+    // Here you would typically make an API call to delete the account
+    setShowDeleteModal(false);
+    router.replace('/auth');
   };
 
   const options = [
-    { title: 'Account Settings', onPress: () => router.push('/(settings)/account' as any) },
-    { title: 'Notifications', onPress: () => router.push('/(settings)/notifications' as any) },
-    { title: 'Privacy', onPress: () => router.push('/(settings)/privacy' as any) },
-    { title: 'Display', onPress: () => router.push('/(settings)/display' as any) },
-    { title: 'Help & Support', onPress: () => router.push('/(settings)/help' as any) },
-    { title: 'Logout', onPress: () => setShowLogoutModal(true), textColor: '#FF6B6B' },
+    { title: 'Change Email', onPress: () => router.push('/(settings)/change-email') },
+    { title: 'Change Password', onPress: () => router.push('/(settings)/change-password') },
+    { title: 'Delete Account', onPress: () => setShowDeleteModal(true), textColor: '#FF6B6B' },
   ];
 
   return (
@@ -41,28 +29,25 @@ export default function SettingsScreen() {
             onPress={() => router.back()}
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Go back"
           >
             <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#F3FAF8' : '#181D1C'} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Settings</Text>
+          <Text style={[styles.title, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Account Settings</Text>
           <View style={{ width: 28 }} />
         </View>
 
-        {/* Settings options */}
+        {/* Options */}
         <View style={styles.content}>
           {options.map((option, index) => (
             <TouchableOpacity
               key={index}
-              onPress={option.onPress}
               style={styles.optionContainer}
+              onPress={option.onPress}
             >
-              <Text
-                style={[
-                  styles.option,
-                  { color: option.textColor || (isDarkMode ? '#F3FAF8' : '#181D1C') }
-                ]}
-              >
+              <Text style={[
+                styles.option,
+                { color: option.textColor || (isDarkMode ? '#F3FAF8' : '#181D1C') }
+              ]}>
                 {option.title}
               </Text>
               <Ionicons
@@ -75,36 +60,30 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      {/* Logout Confirmation Modal */}
+      {/* Delete Account Confirmation Modal */}
       <Modal
-        visible={showLogoutModal}
+        visible={showDeleteModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
+        onRequestClose={() => setShowDeleteModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}>
-            <Text style={[styles.modalText, { color: isDarkMode ? '#F3FAF8': '#181D1C' }]}>
-              Are you sure you want to logout?
+            <Text style={[styles.modalText, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>
+              Are you sure you want to delete your account?
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: isDarkMode ? '##181D1C' : '#F3FAF8' }]}
-                onPress={handleLogout}
-                disabled={loading}
+                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}
+                onPress={handleDeleteAccount}
               >
-                <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>
-                  {loading ? 'Logging out...' : 'Yes'}
-                </Text>
+                <Text style={[styles.modalButtonText, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Yes</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C': '#F3FAF8' }]}
-                onPress={() => setShowLogoutModal(false)}
-                disabled={loading}
+                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}
+                onPress={() => setShowDeleteModal(false)}
               >
-                <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>
-                  Cancel
-                </Text>
+                <Text style={[styles.modalButtonText, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>No</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -185,4 +164,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-});
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+}); 

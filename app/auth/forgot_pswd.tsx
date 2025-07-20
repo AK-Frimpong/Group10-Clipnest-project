@@ -1,7 +1,10 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    Image,
     Keyboard,
+    KeyboardAvoidingView,
+    Platform,
     Pressable,
     StyleSheet,
     Text,
@@ -12,81 +15,72 @@ import {
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
 
-  // Basic email validation
   const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!email || email.length > 254) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
   };
 
   const handleSendEmail = () => {
-    // TODO: Implement actual email sending functionality
-    // This would typically involve calling your backend API
-    // For now, we'll just simulate the email being sent
-    setEmailSent(true);
+    if (isValidEmail(email)) {
+      router.push({
+        pathname: '/auth/reset_confirmation',
+        params: { email: email }
+      });
+    }
   };
 
-  const handleBackToLogin = () => {
-    router.replace('/auth/login');
+  const handleBack = () => {
+    router.back();
   };
-
-  if (emailSent) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Email Sent!</Text>
-          <Text style={styles.emailText}>
-            Password reset instructions have been sent to:
-          </Text>
-          <Text style={styles.emailAddress}>{email}</Text>
-          <Pressable
-            style={[
-              styles.backButton,
-              { backgroundColor: '#7BD4C8' }
-            ]}
-            onPress={handleBackToLogin}
-          >
-            <Text style={[styles.buttonText, { color: '#000000' }]}>Back to Login</Text>
-          </Pressable>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.content}>
-          <Text style={styles.title}>Reset your password</Text>
-          
+          <View style={styles.header}>
+            <Pressable onPress={handleBack} style={styles.backButton}>
+              <Image
+                source={require('../../assets/images/backIcon.png')}
+                style={styles.backIcon}
+              />
+            </Pressable>
+            <Text style={styles.title}>Reset your password</Text>
+          </View>
+
           <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
+            style={[
+              styles.input,
+              !isValidEmail(email) && email.length > 0 && styles.inputError
+            ]}
+            placeholder="Email"
             placeholderTextColor="#AAAAAA"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          {!isValidEmail(email) && email.length > 0 && (
+            <Text style={styles.errorText}>Please enter a valid email address</Text>
+          )}
 
           <Pressable
             style={[
-              styles.button,
-              { backgroundColor: isValidEmail(email) ? '#7BD4C8' : '#7BD4C880' }
+              styles.sendButton,
+              !isValidEmail(email) && { opacity: 0.5 }
             ]}
             onPress={handleSendEmail}
             disabled={!isValidEmail(email)}
           >
-            <Text style={[
-              styles.buttonText,
-              { color: isValidEmail(email) ? '#000000' : '#00000080' }
-            ]}>
-              Send a password reset email
-            </Text>
+            <Text style={styles.sendButtonText}>Send password reset email</Text>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
@@ -98,54 +92,59 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 120,
     paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  backButton: {
+    marginRight: 15,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 22,
+    color: '#F3FAF8',
+    flex: 1,
     textAlign: 'center',
-    marginBottom: 15,
   },
   input: {
-    width: 344,
+    width: '100%',
     height: 50,
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
-    color: '#FFFFFF',
+    color: '#F3FAF8',
     backgroundColor: 'transparent',
-    marginBottom: 20,
+    marginBottom: 15,
   },
-  button: {
-    width: 334,
-    height: 43,
-    borderRadius: 30,
+  inputError: {
+    borderColor: '#FF6B6B',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    marginBottom: 15,
+    paddingLeft: 5,
+  },
+  sendButton: {
+    backgroundColor: '#7BDAC8',
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 0,
   },
-  backButton: {
-    width: 200,
-    height: 43,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
+  sendButtonText: {
+    color: '#181D1C',
     fontSize: 16,
-  },
-  emailText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  emailAddress: {
-    color: '#7BD4C8',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
+    fontWeight: '600',
   },
 });

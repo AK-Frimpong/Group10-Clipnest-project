@@ -1,24 +1,28 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Animated,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableWithoutFeedback,
-    View
+  Alert,
+  Animated,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
+import { login } from '../api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const slideAnimation = new Animated.Value(0);
@@ -81,12 +85,31 @@ export default function LoginScreen() {
     };
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    Keyboard.dismiss();
+    
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
+ 
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
 
-    if (isEmailValid && isPasswordValid) {
-      router.replace('/(tabs)');
+    setLoading(true);
+
+    try {
+      const token = await login(email.trim(), password.trim());
+
+      if (typeof token === 'string' && token.length > 10) {
+        console.log('Login successful. Token:', token);
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Login Failed', 'Invalid email or password');
+      }
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,7 +125,17 @@ export default function LoginScreen() {
             { transform: [{ translateY: slideAnimation }] }
           ]}
         >
-          <Text style={styles.title}>Log in</Text>
+          <View style={styles.titleContainer}>
+            <Pressable onPress={() => router.push('/auth')} style={styles.backButton}>
+              <Image
+                source={require('../../assets/images/backIcon.png')}
+                style={styles.backIcon}
+              />
+            </Pressable>
+            <View style={styles.titleWrapper}>
+              <Text style={styles.title}>Log in</Text>
+            </View>
+          </View>
 
           <Pressable style={styles.socialButton}>
             <Text style={styles.socialButtonText}>Continue with Facebook</Text>
@@ -140,7 +173,7 @@ export default function LoginScreen() {
             passwordError ? styles.inputError : {}
           ]}>
             <TextInput
-              style={styles.passwordInput}
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
               placeholder="Password"
               placeholderTextColor="#aaa"
               secureTextEntry={!showPassword}
@@ -149,16 +182,15 @@ export default function LoginScreen() {
                 setPassword(text);
                 validatePassword(text);
               }}
-              autoCapitalize="none"
             />
-            <Pressable 
+            <Pressable
               onPress={() => setShowPassword(!showPassword)}
               style={styles.eyeIcon}
             >
-              <MaterialIcons 
-                name={showPassword ? "visibility" : "visibility-off"} 
-                size={24} 
-                color="#aaa" 
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={20}
+                color="#aaa"
               />
             </Pressable>
           </View>
@@ -167,21 +199,21 @@ export default function LoginScreen() {
           <Pressable
             style={[
               styles.loginButton,
-              {
-                backgroundColor: (email && password) ? '#27403B' : '#1A2826'
-              }
+              (loading || !email.trim() || !password.trim()) && { opacity: 0.5 }
             ]}
             onPress={handleLogin}
-            disabled={!email || !password}
+            disabled={loading}
           >
-            <Text style={[
-              styles.loginButtonText,
-              { color: (email && password) ? '#FFFFFF' : '#FFFFFF80' }
-            ]}>Log In</Text>
+            <Text style={styles.loginButtonText}>
+              {loading ? 'Logging in...' : 'Log In'}
+            </Text>
           </Pressable>
 
-          <Pressable onPress={() => router.push('/auth/forgot_pswd')}>
-            <Text style={styles.forgotPassword}>Forgot your password?</Text>
+          <Pressable 
+            onPress={() => router.push('/auth/forgot_pswd')}
+            style={styles.forgotPasswordContainer}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
           </Pressable>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -192,44 +224,61 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#212121',
+    backgroundColor: '#181D1C',
+    paddingTop: 60,
+    alignItems: 'center',
   },
   content: {
-    flex: 1,
+    width: '100%',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-    justifyContent: 'center',
+  },
+  titleContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 30,
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    zIndex: 1,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
   },
   title: {
     color: '#F3FAF8',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 30,
-    alignSelf: 'center',
+    fontSize: 24,
   },
   socialButton: {
-    backgroundColor: '#7BD4C8',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 30,
-    marginBottom: 15,
     width: '100%',
+    height: 50,
+    borderColor: '#F3FAF8',
+    borderWidth: 1,
+    borderRadius: 25,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 15,
   },
   socialButtonText: {
-    color: '#181D1C',
+    color: '#F3FAF8',
     fontSize: 16,
-    fontWeight: '500',
   },
   or: {
     color: '#F3FAF8',
-    marginVertical: 15,
-    fontSize: 14,
-    alignSelf: 'center',
+    fontSize: 16,
+    marginVertical: 20,
   },
   input: {
-    width: 344,
+    width: '100%',
     height: 50,
     borderColor: '#F3FAF8',
     borderWidth: 1,
@@ -237,8 +286,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     color: '#F3FAF8',
     backgroundColor: 'transparent',
-    marginBottom: 8,
-    fontSize: 16,
+    marginBottom: 15,
   },
   inputError: {
     borderColor: '#FF6B6B',
@@ -246,49 +294,42 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#FF6B6B',
     fontSize: 14,
-    marginBottom: 12,
-    textAlign: 'left',
+    marginBottom: 15,
     alignSelf: 'flex-start',
-    paddingLeft: 25,
   },
   passwordContainer: {
-    width: 344,
-    height: 50,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#FFFFFF',
+    borderColor: '#F3FAF8',
     borderWidth: 1,
     borderRadius: 10,
-    backgroundColor: 'transparent',
-    marginBottom: 8,
-  },
-  passwordInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    paddingHorizontal: 15,
-    fontSize: 16,
+    marginBottom: 15,
   },
   eyeIcon: {
-    padding: 10,
-    paddingRight: 15,
+    padding: 15,
   },
   loginButton: {
-    backgroundColor: '#27403B',
-    paddingVertical: 15,
-    borderRadius:30,
+    backgroundColor: '#7BDAC8',
     width: '100%',
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 20,
   },
   loginButtonText: {
-    color: '#F3FAF8',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#181D1C',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  forgotPassword: {
+  forgotPasswordContainer: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
     color: '#7BD4C8',
     fontSize: 14,
-    textAlign: 'center',
-    marginTop: 10,
+    textDecorationLine: 'underline',
   },
 });

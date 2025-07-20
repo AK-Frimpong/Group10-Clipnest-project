@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 
 export default function SignupIndex() {
   const router = useRouter();
@@ -8,5 +9,5 @@ export default function SignupIndex() {
     router.replace('/auth/signup/email');
   }, []);
 
-  return null;
+  return <View />;
 }

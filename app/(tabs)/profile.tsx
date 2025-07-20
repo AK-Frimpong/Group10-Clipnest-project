@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import EditProfileModal from '../modals/EditProfileModal';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext'; //  FIXED PATH
+import EditProfileModal from '../modals/EditProfileModal';
 
 export default function ProfileScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -14,6 +14,7 @@ export default function ProfileScreen() {
   const [name, setName] = useState('Alvin');
   const [username, setUsername] = useState('alvinnn');
   const [bio, setBio] = useState('Basketball, Fragrance, Cars');
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
@@ -25,36 +26,26 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       contentContainerStyle={styles.container}
-      style={{ backgroundColor: isDarkMode ? '#000' : '#fff' }} //  Dynamic background
+      style={{ backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }} // updated
     >
       <View style={styles.topBar}>
         <TouchableOpacity onPress={openSettings}>
           <Ionicons name="settings-outline" size={28} color={isDarkMode ? 'white' : 'black'} />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => alert('Share profile tapped')}>
           <Ionicons name="share-social-outline" size={28} color={isDarkMode ? 'white' : 'black'} />
         </TouchableOpacity>
       </View>
-
       <View style={styles.topSection}>
-        <View style={[styles.profilePic, { backgroundColor: isDarkMode ? '#333' : '#ccc' }]} />
+        {avatar ? (
+          <Image source={{ uri: avatar }} style={styles.profilePic} />
+        ) : (
+          <View style={[styles.profilePic, { backgroundColor: isDarkMode ? '#333' : '#ccc' }]} />
+        )}
         <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{name}</Text>
         <Text style={[styles.username, { color: isDarkMode ? '#aaa' : '#888' }]}>@{username}</Text>
-
-        <View style={styles.stats}>
-          <View style={styles.stat}>
-            <Text style={[styles.statNumber, { color: isDarkMode ? '#fff' : '#000' }]}>0</Text>
-            <Text style={[styles.statLabel, { color: isDarkMode ? '#aaa' : '#666' }]}>Followers</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={[styles.statNumber, { color: isDarkMode ? '#fff' : '#000' }]}>0</Text>
-            <Text style={[styles.statLabel, { color: isDarkMode ? '#aaa' : '#666' }]}>Following</Text>
-          </View>
-        </View>
-
+        <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}>0 follower · 0 following</Text>
         <Text style={[styles.bio, { color: isDarkMode ? '#ccc' : '#555' }]}>{bio}</Text>
-
         <TouchableOpacity
           style={[
             styles.editButton,
@@ -72,11 +63,9 @@ export default function ProfileScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.noPinsContainer}>
-        <Text style={[styles.noPinsText, { color: isDarkMode ? '#888' : '#aaa' }]}>
-          No pins here yet
-        </Text>
+      {/* Pins grid placeholder */}
+      <View style={styles.pinsGridPlaceholder}>
+        <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>[Pins grid coming soon]</Text>
       </View>
 
       <EditProfileModal
@@ -85,10 +74,12 @@ export default function ProfileScreen() {
         currentName={name}
         currentUsername={username}
         currentBio={bio}
-        onSave={(newName, newUsername, newBio) => {
+        currentAvatar={avatar}
+        onSave={(newName, newUsername, newBio, newAvatar) => {
           setName(newName);
           setUsername(newUsername);
           setBio(newBio);
+          setAvatar(newAvatar);
           closeModal();
         }}
       />
@@ -162,5 +153,15 @@ const styles = StyleSheet.create({
   },
   noPinsText: {
     fontSize: 16,
+  },
+  statsLine: {
+    marginTop: 10,
+    marginBottom: 10,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  pinsGridPlaceholder: {
+    marginTop: 40,
+    alignItems: 'center',
   },
 });

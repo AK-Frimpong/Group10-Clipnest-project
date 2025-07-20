@@ -1,14 +1,14 @@
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-  ScrollView,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { useThemeContext } from '../../theme/themecontext';
 
 interface Props {
   visible: boolean;
@@ -16,6 +16,12 @@ interface Props {
 }
 
 export default function PostCreationModal({ visible, onClose }: Props) {
+  const { isDarkMode } = useThemeContext();
+  const modalBg = isDarkMode ? '#181D1C' : '#F3FAF8';
+  const buttonBg = isDarkMode ? '#252A29' : '#E2F1ED';
+  const iconColor = isDarkMode ? '#fff' : '#181D1C';
+  const textColor = isDarkMode ? '#fff' : '#181D1C';
+
   return (
     <Modal
       animationType="slide"
@@ -25,31 +31,29 @@ export default function PostCreationModal({ visible, onClose }: Props) {
     >
       <View style={styles.overlay}>
         <Pressable style={styles.background} onPress={onClose} />
-
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <Text style={styles.headerText}>Start creating now</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#333" />
+        <View style={[styles.modalContent, { backgroundColor: modalBg }]}> {/* theme color */}
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={32} color={iconColor} />
+            </TouchableOpacity>
+            <Text style={[styles.headerText, { color: textColor }]}>Start creating now</Text>
+            <View style={{ width: 32 }} />
+          </View>
+          <View style={styles.iconRow}>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+              <MaterialCommunityIcons name="pin" size={36} color={iconColor} />
+              <Text style={[styles.actionLabel, { color: textColor }]}>Pin</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+              <MaterialCommunityIcons name="collage" size={36} color={iconColor} />
+              <Text style={[styles.actionLabel, { color: textColor }]}>Collage</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}> {/* theme color */}
+              <MaterialIcons name="dashboard" size={36} color={iconColor} />
+              <Text style={[styles.actionLabel, { color: textColor }]}>Board</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView>
-            <TouchableOpacity style={styles.option}>
-              <MaterialIcons name="image" size={24} color="#555" style={styles.icon} />
-              <Text style={styles.optionText}>Pin</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.option}>
-              <FontAwesome5 name="th-large" size={22} color="#555" style={styles.icon} />
-              <Text style={styles.optionText}>Collage</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.option}>
-              <Ionicons name="folder-outline" size={24} color="#555" style={styles.icon} />
-              <Text style={styles.optionText}>Board</Text>
-            </TouchableOpacity>
-          </ScrollView>
+          <View style={[styles.handleBar, { backgroundColor: isDarkMode ? '#444' : '#ccc' }]} />
         </View>
       </View>
     </Modal>
@@ -66,32 +70,58 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 20,
-    maxHeight: '60%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 24,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginBottom: 24,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 32,
+    justifyContent: 'space-between',
+  },
+  closeButton: {
+    padding: 4,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
   },
-  option: {
+  iconRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 32,
+  },
+  actionButton: {
+    borderRadius: 24,
+    width: 84,
+    height: 84,
     alignItems: 'center',
-    paddingVertical: 14,
+    justifyContent: 'center',
+    marginHorizontal: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  icon: {
-    marginRight: 14,
+  actionLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
   },
-  optionText: {
-    fontSize: 16,
-    color: '#333',
+  handleBar: {
+    width: 80,
+    height: 5,
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginTop: 16,
   },
 });

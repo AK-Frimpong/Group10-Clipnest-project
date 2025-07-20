@@ -1,14 +1,14 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useThemeContext } from '../theme/themecontext';
+import React from 'react';
+import {
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useThemeContext } from '@/theme/themecontext';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function DisplayScreen() {
   const router = useRouter();
@@ -20,33 +20,65 @@ export default function DisplayScreen() {
     return (
       <TouchableOpacity
         onPress={() => setTheme(value)}
-        style={styles.optionRow}
+        style={[
+          styles.optionRow,
+          {
+            borderColor: isDarkMode ? '#181D1C' : '#F3FAF8',
+          },
+        ]}
       >
-        <Text style={[styles.optionLabel, { color: isDarkMode ? '#fff' : '#000' }]}>
+        <ThemedText
+          style={[
+            styles.optionLabel,
+            { color: isDarkMode ? '#F3FAF8' : '#181D1C' },
+          ]}
+        >
           {label}
-        </Text>
+        </ThemedText>
         {isSelected && (
-          <Ionicons name="checkmark" size={20} color={isDarkMode ? '#fff' : '#000'} />
+          <Ionicons
+            name="checkmark"
+            size={20}
+            color={isDarkMode ? '#F3FAF8' : '#181D1C'}
+          />
         )}
       </TouchableOpacity>
     );
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDarkMode ? '#000' : '#fff' }]}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' },
+      ]}
+    >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            {
+              borderColor: isDarkMode ? '#181D1C' : '#F3FAF8',
+            },
+          ]}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#fff' : '#000'} />
+            <Ionicons
+              name="arrow-back"
+              size={28}
+              color={isDarkMode ? '#F3FAF8' : '#181D1C'}
+            />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#000' }]}>
+          <ThemedText
+            style={[styles.title, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}
+          >
             Display
-          </Text>
+          </ThemedText>
           <View style={{ width: 28 }} /> {/* spacer */}
         </View>
 
@@ -89,11 +121,10 @@ const styles = StyleSheet.create({
   },
   optionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 15,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: '#eee',
   },
   optionLabel: {
     fontSize: 16,
