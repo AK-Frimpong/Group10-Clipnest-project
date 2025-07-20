@@ -34,7 +34,7 @@ export default function AuthIndex() {
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
       <Pressable style={[styles.button, styles.login]} onPress={() => router.push('/auth/login')}>
-        <Text style={styles.buttonText}>Log In</Text>
+        <Text style={[styles.buttonText, styles.loginButtonText]}>Log In</Text>
       </Pressable>
     </ScrollView>
   );
@@ -43,7 +43,7 @@ export default function AuthIndex() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#212121',
+    backgroundColor: '#181D1C',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#fff',
+    color: '#F3FAF8',
     marginBottom: 20,
     fontWeight: '600',
     textAlign: 'center',
@@ -84,9 +84,12 @@ const styles = StyleSheet.create({
   },
   login: {
     backgroundColor: '#7BD4C8',
+   },
+   loginButtonText: {
+    color: '#181D1C',
   },
   buttonText: {
-    color: '#fff',
+    color: '#F3FAF8',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
