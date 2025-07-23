@@ -5,9 +5,13 @@ import {
     Dimensions,
     FlatList,
     Image,
+    Platform,
     RefreshControl,
+    SafeAreaView,
+    StatusBar,
     StyleSheet,
-    TouchableOpacity
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext';
 
@@ -17,26 +21,40 @@ const UNSPLASH_ACCESS_KEY = 'BFOYbWJ2jnhmYi-W7Ew3uBsoQ7V-F_qals3ICv4SNIs';
 const PEXELS_API_KEY = 'hVq7HPVbO1wmVUqvsA47uaHqeZdESbtdG2lovKcBkzTuopoaErCa226H';
 const PER_PAGE = 20;
 
-function getRandomQuery() {
+function getRandomQueries(count = 8) {
   const queries = [
-    'nature', 'food', 'fashion', 'art', 'travel', 'animals', 'technology', 'city', 'flowers', 'mountains', 'beach', 'architecture', 'music', 'cars', 'abstract', 'portrait', 'sports', 'space', 'people', 'lifestyle',
+    'wallpaper', 'shoes', 'nail-art', 'baking', 'skincare', 'makeup', 'interior-design', 
+    'tattoo', 'art', 'inspirational-quotes', 'hairstyles', 'outfit-fashion', 'cooking', 
+    'cars', 'african-fashion', 'photography', 'gift-ideas', 'piercings', 'nature', 
+    'travel', 'diy-crafts', 'fitness', 'wedding', 'jewelry', 'home-decor', 'street-style',
+    'graphic-design', 'food-photography', 'architecture', 'gardening'
   ];
-  return queries[Math.floor(Math.random() * queries.length)];
+  const selectedQueries = [];
+  const availableQueries = [...queries];
+  
+  for (let i = 0; i < count && availableQueries.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * availableQueries.length);
+    selectedQueries.push(availableQueries.splice(randomIndex, 1)[0]);
+  }
+  
+  return selectedQueries;
 }
 
 type ImageItem = {
   id: string;
   url: string;
+  height: number;
 };
 
 export default function HomeScreen() {
   const { isDarkMode } = useThemeContext();
+  const safeAreaTop = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
   const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const pageRef = useRef(1);
-  const [query, setQuery] = useState(getRandomQuery());
+  const [queries, setQueries] = useState(getRandomQueries());
   const router = useRouter();
   const navigation = useNavigation();
   const flatListRef = useRef<FlatList>(null);
@@ -45,40 +63,62 @@ export default function HomeScreen() {
 
   const backgroundColor = isDarkMode ? '#181D1C' : '#F3FAF8';
 
-  const fetchImages = useCallback(async (reset = false, newQuery?: string) => {
+  const fetchImages = useCallback(async (reset = false, newQueries?: string[]) => {
     setLoading(true);
     try {
       const page = reset ? 1 : pageRef.current;
-      const searchQuery = newQuery || query;
-      // Unsplash fetch
-      const unsplashPromise = fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}&client_id=${UNSPLASH_ACCESS_KEY}`
-      ).then(res => res.ok ? res.json() : { results: [] });
-      // Pexels fetch
-      const pexelsPromise = fetch(
-        `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`,
-        { headers: { Authorization: PEXELS_API_KEY } }
-      ).then(res => res.ok ? res.json() : { photos: [] });
-      // Wait for both
-      const [unsplashData, pexelsData] = await Promise.all([unsplashPromise, pexelsPromise]);
-      // Normalize
-      const unsplashImages: ImageItem[] = (unsplashData.results || []).map((img: any) => ({ id: 'u_' + img.id + '_' + page, url: img.urls.small }));
-      const pexelsImages: ImageItem[] = (pexelsData.photos || []).map((img: any) => ({ id: 'p_' + img.id + '_' + page, url: img.src.medium }));
-      const merged = reset ? [...unsplashImages, ...pexelsImages] : [...images, ...unsplashImages, ...pexelsImages];
+      const searchQueries = newQueries || queries;
+      const imagesPerQuery = Math.floor(PER_PAGE / searchQueries.length);
+      
+      let allImages: ImageItem[] = [];
+      
+      for (const searchQuery of searchQueries) {
+        // Unsplash fetch
+        const unsplashPromise = fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${imagesPerQuery}&client_id=${UNSPLASH_ACCESS_KEY}`
+        ).then(res => res.ok ? res.json() : { results: [] });
+        // Pexels fetch
+        const pexelsPromise = fetch(
+          `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${imagesPerQuery}`,
+          { headers: { Authorization: PEXELS_API_KEY } }
+        ).then(res => res.ok ? res.json() : { photos: [] });
+        
+        // Wait for both
+        const [unsplashData, pexelsData] = await Promise.all([unsplashPromise, pexelsPromise]);
+        
+        // Normalize and add to collection
+        const unsplashImages: ImageItem[] = (unsplashData.results || []).map((img: any) => ({ 
+          id: `u_${img.id}_${searchQuery}_${page}`,
+          url: img.urls.small,
+          height: Math.floor(Math.random() * 100) + 200 // Random height between 200 and 300
+        }));
+        const pexelsImages: ImageItem[] = (pexelsData.photos || []).map((img: any) => ({ 
+          id: `p_${img.id}_${searchQuery}_${page}`,
+          url: img.src.medium,
+          height: Math.floor(Math.random() * 100) + 200 // Random height between 200 and 300
+        }));
+        
+        allImages = [...allImages, ...unsplashImages, ...pexelsImages];
+      }
+      
+      // Shuffle the images to mix categories
+      const shuffledImages = allImages.sort(() => Math.random() - 0.5);
+      
+      const merged = reset ? shuffledImages : [...images, ...shuffledImages];
       setImages(merged);
       pageRef.current = page + 1;
-      setHasMore(unsplashImages.length + pexelsImages.length > 0);
+      setHasMore(shuffledImages.length > 0);
     } catch {
       // handle error
     } finally {
       setLoading(false);
     }
-  }, [images, query]);
+  }, [images, queries]);
 
   useEffect(() => {
     fetchImages(true);
     // eslint-disable-next-line
-  }, [query]);
+  }, [queries]);
 
   const loadMore = () => {
     if (!loading && hasMore && images.length > 0) {
@@ -88,9 +128,9 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    const newQuery = getRandomQuery();
-    setQuery(newQuery);
-    await fetchImages(true, newQuery);
+    const newQueries = getRandomQueries();
+    setQueries(newQueries);
+    await fetchImages(true, newQueries);
     setRefreshing(false);
   };
 
@@ -117,55 +157,103 @@ export default function HomeScreen() {
     if (event.nativeEvent.contentOffset.y > 0) lastWasAtTopRef.current = false;
   };
 
-  const renderItem = ({ item, index }: { item: ImageItem, index: number }) => (
-    <TouchableOpacity
-      onPress={() => router.push({
-        pathname: '/ImageDetailsScreen',
-        params: { index, images: JSON.stringify(images) },
-      })}
-      activeOpacity={0.85}
-    >
-      <Image
-        source={{ uri: item.url }}
-        style={styles.image}
-        resizeMode="cover"
-        // @ts-ignore: shared element prop for shared transition
-        sharedTransitionTag={`image-${item.id}`}
-      />
-    </TouchableOpacity>
+  // Create two columns for masonry layout
+  const [leftColumn, rightColumn] = images.reduce(
+    (columns, item, index) => {
+      const column = index % 2 === 0 ? columns[0] : columns[1];
+      column.push(item);
+      return columns;
+    },
+    [[], []] as [ImageItem[], ImageItem[]]
+  );
+
+  const renderColumn = (items: ImageItem[], isLeftColumn: boolean) => (
+    <View style={[styles.column, isLeftColumn && styles.leftColumn]}>
+      {items.map((item, index) => (
+        <TouchableOpacity
+          key={item.id}
+          onPress={() => router.push({
+            pathname: '/ImageDetailsScreen',
+            params: { index: isLeftColumn ? index * 2 : index * 2 + 1, images: JSON.stringify(images) },
+          })}
+          activeOpacity={0.85}
+          style={styles.itemContainer}
+        >
+          <Image
+            source={{ uri: item.url }}
+            style={[styles.image, { height: item.height }]}
+            resizeMode="cover"
+            // @ts-ignore: shared element prop for shared transition
+            sharedTransitionTag={`image-${item.id}`}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
   );
 
   return (
-    <FlatList
-      ref={flatListRef}
-      data={images}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      numColumns={2}
-      contentContainerStyle={styles.container}
-      style={{ backgroundColor }}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={loading ? <ActivityIndicator style={{ margin: 16 }} /> : null}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={isDarkMode ? '#fff' : '#181D1C'} />
-      }
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-    />
+    <SafeAreaView style={{ flex: 1, backgroundColor }}>
+      <FlatList
+        ref={flatListRef}
+        data={[null]} // Single item to render our custom layout
+        keyExtractor={() => 'key'}
+        renderItem={() => (
+          <View style={styles.container}>
+            {renderColumn(leftColumn, true)}
+            {renderColumn(rightColumn, false)}
+          </View>
+        )}
+        contentContainerStyle={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0 }}
+        style={{ backgroundColor }}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loading ? <ActivityIndicator style={{ margin: 16 }} /> : null}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={isDarkMode ? '#fff' : '#181D1C'} />
+        }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 8,
+    flexDirection: 'row',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+  },
+  column: {
+    flex: 1,
+    padding: 8,
+  },
+  leftColumn: {
+    marginRight: 8,
+  },
+  itemContainer: {
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   image: {
-    width: (Dimensions.get('window').width - 48) / 2,
-    height: 200,
+    width: '100%',
     borderRadius: 12,
-    marginBottom: 16,
-    marginRight: 16,
+    overflow: 'hidden',
   },
 });
