@@ -46,8 +46,13 @@ export default function MessagesScreen() {
   const { isDarkMode } = useThemeContext();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(DUMMY_USERS);
-  const [conversations, setConversations] = useState<any[]>([]); // { username, name, lastMessage }
+  const [conversations, setConversations] = useState<any[]>([]); // { username, name, lastMessage, unreadCount }
   const router = useRouter();
+
+  // Helper to get unread count key
+  const getUnreadKey = (username: string) => `chat_unread_${user?.id || 'unknown'}_${username}`;
+  // Helper to get chat messages key
+  const getChatKey = (username: string) => `chat_messages_${user?.id || 'unknown'}_${username}`;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -56,6 +61,9 @@ export default function MessagesScreen() {
         for (const u of DUMMY_USERS) {
           const key = `chat_messages_${user?.id || 'unknown'}_${u.username}`;
           const stored = await AsyncStorage.getItem(key);
+          const unreadKey = getUnreadKey(u.username);
+          const unreadRaw = await AsyncStorage.getItem(unreadKey);
+          const unreadCount = unreadRaw ? parseInt(unreadRaw, 10) : 0;
           if (stored) {
             const msgs = JSON.parse(stored);
             if (Array.isArray(msgs) && msgs.length > 0) {
@@ -63,8 +71,9 @@ export default function MessagesScreen() {
               convos.push({
                 username: u.username,
                 lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : ''),
-                lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''), // True if it's an image AND no non-empty text
+                lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''),
                 lastTimestamp: lastMsg.timestamp,
+                unreadCount,
               });
             }
           }
@@ -90,6 +99,12 @@ export default function MessagesScreen() {
     searchText.trim() !== ''
       ? searchResults.map(u => ({ ...u, lastMessage: '' }))
       : conversations;
+
+  // When a chat is opened, reset unread count for that user
+  const handleOpenChat = async (username: string) => {
+    await AsyncStorage.setItem(getUnreadKey(username), '0');
+    router.push({ pathname: '/chat/chat', params: { username } });
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -125,18 +140,19 @@ export default function MessagesScreen() {
           data={usersToShow}
           keyExtractor={item => item.username}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.userRow} onPress={() => router.push({ pathname: '/chat/chat', params: { username: item.username } })}>
+            <TouchableOpacity style={styles.userRow} onPress={() => handleOpenChat(item.username)}>
               <Ionicons name="person-circle-outline" size={28} color={isDarkMode ? '#4EE0C1' : '#181D1C'} />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>{item.username}</Text>
                 {item.lastMessage !== undefined && item.lastMessage !== '' && (
                   <Text
                     style={{
-                      color: isDarkMode ? '#aaa' : '#555',
+                      color: item.lastSender === 'them' ? '#27403B' : (isDarkMode ? '#aaa' : '#555'),
                       fontSize: 14,
                       marginTop: 2,
                       fontStyle: item.lastIsImage ? 'italic' : 'normal',
                       opacity: item.lastIsImage ? 0.7 : 1,
+                      fontWeight: item.unreadCount > 0 ? 'bold' : 'normal',
                     }}
                     numberOfLines={1}
                   >
@@ -148,6 +164,21 @@ export default function MessagesScreen() {
                 <Text style={{ color: isDarkMode ? '#aaa' : '#555', fontSize: 13, marginLeft: 8, textAlign: 'right', minWidth: 70 }}>
                   {formatTimestamp(new Date(item.lastTimestamp))}
                 </Text>
+              )}
+              {/* Unread badge */}
+              {item.unreadCount > 0 && (
+                <View style={{
+                  backgroundColor: '#7BD4C8',
+                  borderRadius: 12,
+                  minWidth: 24,
+                  height: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 10,
+                  paddingHorizontal: 6,
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>{item.unreadCount}</Text>
+                </View>
               )}
             </TouchableOpacity>
           )}

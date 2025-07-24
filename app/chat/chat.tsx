@@ -367,8 +367,8 @@ export default function ChatScreen() {
                         style={[
                           styles.messageRow,
                           item.sender === 'me'
-                            ? [styles.myMsg, { backgroundColor: isDarkMode ? '#7BD4C8' : '#7BD4C8' }]
-                            : [styles.theirMsg, { backgroundColor: cardColor }],
+                            ? [styles.myMsg, { backgroundColor: '#7BD4C8' }]
+                            : [styles.theirMsg, { backgroundColor: '#7BD4C8' }],
                           item.imageUri && { backgroundColor: 'transparent', padding: 0, marginBottom: 8 },
                         ]}
                       >
@@ -378,7 +378,15 @@ export default function ChatScreen() {
                           </TouchableOpacity>
                         ) : null}
                         {item.text && (
-                          <Text style={[styles.msgText, { fontStyle: item.deletedForEveryone ? 'italic' : 'normal', color: item.deletedForEveryone ? '#888' : textColor }]}>
+                          <Text
+                            style={[
+                              styles.msgText,
+                              {
+                                fontStyle: item.deletedForEveryone ? 'italic' : 'normal',
+                                color: item.deletedForEveryone ? '#888' : '#181D1C',
+                              },
+                            ]}
+                          >
                             {item.text}
                           </Text>
                         )}
@@ -589,9 +597,21 @@ export default function ChatScreen() {
                     contentContainerStyle={{ paddingBottom: 24, alignItems: 'center', justifyContent: 'center' }}
                     style={{ flex: 1 }}
                     ListEmptyComponent={
-                      <Text style={{ color: textColor, textAlign: 'center', marginTop: 24 }}>
-                        {pinTab === 'all' ? 'No pins found.' : "You haven't sent any pins yet."}
-                      </Text>
+                      pinTab === 'all' ? (
+                        <Text style={{ color: textColor, textAlign: 'center', marginTop: 24 }}>
+                          No pins found.
+                        </Text>
+                      ) : (
+                        <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 48 }}>
+                          <Ionicons name="image-outline" size={64} color={isDarkMode ? '#7BD4C8' : '#181D1C'} style={{ marginBottom: 18 }} />
+                          <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontSize: 22, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
+                            You don't have any clips saved yet
+                          </Text>
+                          <Text style={{ color: isDarkMode ? '#aaa' : '#555', fontSize: 15, textAlign: 'center', opacity: 0.7 }}>
+                            Saved clips will appear here for quick sharing.
+                          </Text>
+                        </View>
+                      )
                     }
                   />
                 )}
