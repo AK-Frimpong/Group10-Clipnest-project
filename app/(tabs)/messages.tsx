@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext';
@@ -9,12 +10,14 @@ const DUMMY_USERS = [
   { username: 'johndoe', name: 'John Doe' },
   { username: 'minimalist', name: 'Minimalist User' },
   { username: 'artlover', name: 'Art Lover' },
+  { username: 'jermaine', name: 'Jermaine' },
 ];
 
 export default function MessagesScreen() {
   const { isDarkMode } = useThemeContext();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(DUMMY_USERS);
+  const router = useRouter();
 
   const handleSearch = (text: string) => {
     setSearchText(text);
@@ -55,7 +58,7 @@ export default function MessagesScreen() {
             data={searchResults}
             keyExtractor={item => item.username}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.userRow}>
+              <TouchableOpacity style={styles.userRow} onPress={() => router.push({ pathname: '/UserProfileScreen', params: { username: item.username } })}>
                 <Ionicons name="person-circle-outline" size={28} color={isDarkMode ? '#4EE0C1' : '#181D1C'} />
                 <View style={{ marginLeft: 12 }}>
                   <Text style={{ color: isDarkMode ? '#fff' : '#181D1C', fontWeight: 'bold' }}>{item.name}</Text>

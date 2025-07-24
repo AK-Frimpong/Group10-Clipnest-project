@@ -1,10 +1,13 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { Dimensions, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useContext, useMemo, useState } from 'react';
+import { Alert, Dimensions, FlatList, Image, Modal, Pressable, SafeAreaView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useThemeContext } from '../theme/themecontext';
+import { ImageItem, PinBoardContext } from './context/PinBoardContext';
 
 const screenWidth = Dimensions.get('window').width;
 const imageHeight = 350;
@@ -29,6 +32,22 @@ export default function ImageDetailsScreen() {
     setLiked((prev) => !prev);
     setLikes((prev) => (liked ? prev - 1 : prev + 1));
   };
+
+  const { addToCollage } = useContext(PinBoardContext);
+
+  // If currentImage is undefined, show an error message
+  if (!currentImage) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}> 
+        <Text style={{ color: isDarkMode ? '#fff' : '#222', fontSize: 18, textAlign: 'center', padding: 24 }}>
+          Sorry, we couldn't load this image. Please try again from the home page.
+        </Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20, padding: 12, backgroundColor: '#222', borderRadius: 8 }}>
+          <Text style={{ color: '#fff', fontSize: 16 }}>Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   // Gesture logic (Reanimated 2+)
   const translateX = useSharedValue(0);
@@ -56,6 +75,41 @@ export default function ImageDetailsScreen() {
       }
     },
   });
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleShare = async () => {
+    if (currentImage) {
+      try {
+        await Share.share({ message: currentImage.url });
+      } catch {}
+    }
+    setModalVisible(false);
+  };
+
+  const handleDownload = async () => {
+    if (currentImage) {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') return;
+      try {
+        // Download the image to a local file
+        const fileUri = FileSystem.cacheDirectory + `clipnest_${Date.now()}.jpg`;
+        const downloadRes = await FileSystem.downloadAsync(currentImage.url, fileUri);
+        // Save the local file to the camera roll
+        await MediaLibrary.createAssetAsync(downloadRes.uri);
+        Alert.alert('Success', 'Image downloaded successfully');
+      } catch {
+        // Optionally, show an error alert here
+      }
+    }
+    setModalVisible(false);
+  };
+  const handleAddToCollage = () => {
+    if (currentImage) {
+      addToCollage(currentImage as ImageItem);
+    }
+    setModalVisible(false);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}> 
@@ -86,10 +140,31 @@ export default function ImageDetailsScreen() {
         <TouchableOpacity style={styles.actionButton}>
           <Feather name="share" size={26} color={isDarkMode ? '#fff' : '#222'} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => setModalVisible(true)}>
           <Feather name="more-horizontal" size={26} color={isDarkMode ? '#fff' : '#222'} />
         </TouchableOpacity>
       </View>
+      {/* Drop-up Modal for More Options */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={() => setModalVisible(false)}>
+          <Pressable style={{ backgroundColor: isDarkMode ? '#222' : '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 24 }} onPress={e => e.stopPropagation()}>
+            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleDownload}>
+              <Text style={{ color: isDarkMode ? '#fff' : '#222', fontSize: 16 }}>Download Image</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleAddToCollage}>
+              <Text style={{ color: isDarkMode ? '#fff' : '#222', fontSize: 16 }}>Add to Collage</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleShare}>
+              <Text style={{ color: isDarkMode ? '#fff' : '#222', fontSize: 16 }}>Share</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
       {/* More to explore */}
       <Text style={[styles.sectionTitle, { color: isDarkMode ? '#fff' : '#222' }]}>More to explore</Text>
       <FlatList

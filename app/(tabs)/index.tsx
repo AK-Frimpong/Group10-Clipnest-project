@@ -1,19 +1,25 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    FlatList,
-    Image,
-    Platform,
-    RefreshControl,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  SafeAreaView,
+  Share,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext';
+import { PinBoardContext } from '../context/PinBoardContext';
 
 const screenWidth = Dimensions.get('window').width;
 const imageWidth = (screenWidth - 48) / 2;
@@ -60,6 +66,9 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const [isAtTop, setIsAtTop] = useState(true);
   const lastWasAtTopRef = useRef(false);
+  const { addPin } = useContext(PinBoardContext);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
 
   const backgroundColor = isDarkMode ? '#181D1C' : '#F3FAF8';
 
@@ -157,6 +166,23 @@ export default function HomeScreen() {
     if (event.nativeEvent.contentOffset.y > 0) lastWasAtTopRef.current = false;
   };
 
+  const handleLongPress = (item: ImageItem) => {
+    setSelectedImage(item);
+    setModalVisible(true);
+  };
+  const handlePin = () => {
+    if (selectedImage) addPin(selectedImage);
+    setModalVisible(false);
+  };
+  const handleShare = async () => {
+    if (selectedImage) {
+      try {
+        await Share.share({ message: selectedImage.url });
+      } catch {}
+    }
+    setModalVisible(false);
+  };
+
   // Create two columns for masonry layout
   const [leftColumn, rightColumn] = images.reduce(
     (columns, item, index) => {
@@ -176,6 +202,7 @@ export default function HomeScreen() {
             pathname: '/ImageDetailsScreen',
             params: { index: isLeftColumn ? index * 2 : index * 2 + 1, images: JSON.stringify(images) },
           })}
+          onLongPress={() => handleLongPress(item)}
           activeOpacity={0.85}
           style={styles.itemContainer}
         >
@@ -193,6 +220,41 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor }}>
+      {/* Pin/Share Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable
+            style={{ backgroundColor: '#222', borderRadius: 16, padding: 24, alignItems: 'center' }}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage.url }}
+                style={{ width: 220, height: 180, borderRadius: 12, marginBottom: 20 }}
+                resizeMode="cover"
+              />
+            )}
+            <View style={{ flexDirection: 'row', gap: 32 }}>
+              <Pressable onPress={handlePin} style={{ alignItems: 'center', marginRight: 24 }}>
+                <MaterialCommunityIcons name="pin" size={32} color={isDarkMode ? '#fff' : '#181D1C'} />
+                <Text style={{ color: isDarkMode ? '#fff' : '#181D1C', marginTop: 8 }}>Clip</Text>
+              </Pressable>
+              <Pressable onPress={handleShare} style={{ alignItems: 'center' }}>
+                <Ionicons name="share-outline" size={32} color="#fff" />
+                <Text style={{ color: '#fff', marginTop: 8 }}>Share</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
       <FlatList
         ref={flatListRef}
         data={[null]} // Single item to render our custom layout

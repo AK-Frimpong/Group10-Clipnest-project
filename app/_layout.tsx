@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '../theme/themecontext';
+import { PinBoardProvider } from './context/PinBoardContext';
 
 export default function RootLayout() {
   const [isAuthenticated] = useState(false);
@@ -26,27 +27,29 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'fade',
-          }}
-        >
-          <Stack.Screen name="index" options={{ animation: 'none' }} />
-          {isAuthenticated ? (
-            <Stack.Screen name="(tabs)" />
-          ) : (
-            <Stack.Screen name="auth" />
-          )}
-          <Stack.Screen name="settings" />
-          <Stack.Screen
-            name="modals/PostCreationModal"
-            options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+        <PinBoardProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade',
             }}
-          />
-        </Stack>
+          >
+            <Stack.Screen name="index" options={{ animation: 'none' }} />
+            {isAuthenticated ? (
+              <Stack.Screen name="(tabs)" />
+            ) : (
+              <Stack.Screen name="auth" />
+            )}
+            <Stack.Screen name="settings" />
+            <Stack.Screen
+              name="modals/PostCreationModal"
+              options={{
+                presentation: 'transparentModal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+          </Stack>
+        </PinBoardProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

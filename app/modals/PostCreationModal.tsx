@@ -1,4 +1,6 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     Modal,
@@ -21,6 +23,25 @@ export default function PostCreationModal({ visible, onClose }: Props) {
   const buttonBg = isDarkMode ? '#252A29' : '#E2F1ED';
   const iconColor = isDarkMode ? '#fff' : '#181D1C';
   const textColor = isDarkMode ? '#fff' : '#181D1C';
+  const router = useRouter();
+
+  const handleClip = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: false,
+      quality: 1,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      onClose();
+      router.push({
+        pathname: '/CreateClipScreen',
+        params: { uri: asset.uri, height: asset.height || 250 },
+      });
+    }
+  };
 
   return (
     <Modal
@@ -40,9 +61,9 @@ export default function PostCreationModal({ visible, onClose }: Props) {
             <View style={{ width: 32 }} />
           </View>
           <View style={styles.iconRow}>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]} onPress={handleClip}>
               <MaterialCommunityIcons name="pin" size={36} color={iconColor} />
-              <Text style={[styles.actionLabel, { color: textColor }]}>Pin</Text>
+              <Text style={[styles.actionLabel, { color: textColor }]}>Clip</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
               <MaterialCommunityIcons name="collage" size={36} color={iconColor} />

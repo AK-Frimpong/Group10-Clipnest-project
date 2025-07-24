@@ -2,20 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Animated,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View,
+    Animated,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
-import { login } from '../api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -86,31 +84,7 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
-    Keyboard.dismiss();
-    
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
- 
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = await login(email.trim(), password.trim());
-
-      if (typeof token === 'string' && token.length > 10) {
-        console.log('Login successful. Token:', token);
-        router.replace('/(tabs)');
-      } else {
-        Alert.alert('Login Failed', 'Invalid email or password');
-      }
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
-    } finally {
-      setLoading(false);
-    }
+    router.replace('/(tabs)');
   };
 
   return (
