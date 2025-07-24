@@ -1,11 +1,12 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
-
 import { useThemeColor } from '@/hooks/useThemeColor';
+import React from 'react';
+import { StyleSheet, Text, type TextProps } from 'react-native';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  children?: React.ReactNode;
 };
 
 export function ThemedText({
@@ -13,9 +14,22 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'default',
+  children,
   ...rest
 }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+
+  // Runtime check for invalid children
+  if (
+    React.Children.toArray(children).some(
+      (child) =>
+        typeof child !== 'string' &&
+        typeof child !== 'number' &&
+        !(React.isValidElement(child) && child.type === Text)
+    )
+  ) {
+    console.warn('Invalid child passed to ThemedText:', children);
+  }
 
   return (
     <Text
@@ -29,7 +43,9 @@ export function ThemedText({
         style,
       ]}
       {...rest}
-    />
+    >
+      {children}
+    </Text>
   );
 }
 

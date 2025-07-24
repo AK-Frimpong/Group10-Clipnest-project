@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -19,9 +19,6 @@ import {
 } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext';
 
-// =====================
-//  API KEYS - CHANGE THESE TO YOUR OWN!
-// =====================
 // Get your own keys at https://unsplash.com/developers and https://www.pexels.com/api/
 const UNSPLASH_DEFAULT_KEY = "BFOYbWJ2jnhmYi-W7Ew3uBsoQ7V-F_qals3ICv4SNIs";
 const PEXELS_DEFAULT_KEY = "hVq7HPVbO1wmVUqvsA47uaHqeZdESbtdG2lovKcBkzTuopoaErCa226H";
@@ -67,6 +64,7 @@ export default function SearchScreen() {
   const [filteredSuggestions, setFilteredSuggestions] = useState<typeof SUGGESTIONS>([]);
   const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   // Add debounce timer ref
   const debounceTimer = useRef<any>(null);
@@ -233,6 +231,21 @@ export default function SearchScreen() {
       setShowApiKeyWarning(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (params && params.interest && typeof params.interest === 'string') {
+      setSearchText(params.interest);
+      setShowSuggestions(false);
+      searchRef.current = params.interest;
+      setImages([]);
+      setHasMore(true);
+      setError('');
+      pageRef.current = 1;
+      fetchImages(true);
+      Keyboard.dismiss();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.interest]);
 
   const screenWidth = Dimensions.get('window').width;
   const imageWidth = (screenWidth - 48) / 2;

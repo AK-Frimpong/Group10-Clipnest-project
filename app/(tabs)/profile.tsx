@@ -2,15 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useUser } from '../../hooks/UserContext';
 import { useThemeContext } from '../../theme/themecontext'; //  FIXED PATH
 import EditProfileModal from '../modals/EditProfileModal';
 
 export default function ProfileScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+  const { isDarkMode } = useThemeContext();
+  const { user } = useUser();
 
-  const { isDarkMode } = useThemeContext(); //  Use theme context
-
+  // Fallbacks for demo/local state if user is not set
   const [name, setName] = useState('Alvin');
   const [username, setUsername] = useState('alvinnn');
   const [bio, setBio] = useState('Basketball, Fragrance, Cars');
@@ -18,7 +20,6 @@ export default function ProfileScreen() {
 
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
-
   const openSettings = () => {
     router.push('/settings');
   };
@@ -42,8 +43,8 @@ export default function ProfileScreen() {
         ) : (
           <View style={[styles.profilePic, { backgroundColor: isDarkMode ? '#333' : '#ccc' }]} />
         )}
-        <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{name}</Text>
-        <Text style={[styles.username, { color: isDarkMode ? '#aaa' : '#888' }]}>@{username}</Text>
+        <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{user?.id || name}</Text>
+        <Text style={[styles.username, { color: isDarkMode ? '#aaa' : '#888' }]}>@{user?.username || username}</Text>
         <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}>0 follower · 0 following</Text>
         <Text style={[styles.bio, { color: isDarkMode ? '#ccc' : '#555' }]}>{bio}</Text>
         <TouchableOpacity
@@ -71,8 +72,8 @@ export default function ProfileScreen() {
       <EditProfileModal
         visible={isModalVisible}
         onClose={closeModal}
-        currentName={name}
-        currentUsername={username}
+        currentName={user?.id || name}
+        currentUsername={user?.username || username}
         currentBio={bio}
         currentAvatar={avatar}
         onSave={(newName, newUsername, newBio, newAvatar) => {

@@ -39,12 +39,10 @@ export default function NotificationsScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#fff' : '#000'} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#000' }]}>Notifications</Text>
+          <Text style={[styles.title, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Notifications</Text>
           <View style={{ width: 28 }} />
         </View>
 
@@ -52,15 +50,15 @@ export default function NotificationsScreen() {
         <View style={styles.content}>
           {options.map((option) => (
             <View key={option.key} style={styles.optionContainer}>
-              <Text style={[styles.option, { color: isDarkMode ? '#fff' : '#000' }]}>
+              <Text style={[styles.option, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>
                 {option.title}
               </Text>
               <Switch
                 trackColor={{ false: '#767577', true: '#7BDAC8' }}
-                thumbColor={settings[option.key] ? '#F3FAF8' : '#f4f3f4'}
+                thumbColor={settings[option.key  as keyof typeof settings] ? '#F3FAF8' : '#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
-                onValueChange={() => toggleSwitch(option.key)}
-                value={settings[option.key]}
+                onValueChange={() => toggleSwitch(option.key  as keyof typeof settings)}
+                value={settings[option.key  as keyof typeof settings]}
               />
             </View>
           ))}
@@ -86,9 +84,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#ddd',
   },
-  backButton: {
-    padding: 5,
-  },
+
   title: {
     fontSize: 18,
     fontWeight: 'bold',
