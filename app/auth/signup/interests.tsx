@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 export default function InterestsScreen() {
@@ -19,7 +19,7 @@ export default function InterestsScreen() {
   };
 
   const handleNext = () => {
-    router.push('/profile');
+    router.push('/(tabs)');
   };
 
   const handleImagePress = (id: number) => {
