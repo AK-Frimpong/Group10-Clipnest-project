@@ -1,14 +1,14 @@
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeContext } from '@/theme/themecontext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { useThemeContext } from '@/theme/themecontext';
-import { ThemedText } from '@/components/ThemedText';
 
 export default function DisplayScreen() {
   const router = useRouter();
@@ -54,7 +54,6 @@ export default function DisplayScreen() {
       ]}
     >
       <View style={styles.container}>
-        {/* Header */}
         <View
           style={[
             styles.header,
@@ -79,10 +78,9 @@ export default function DisplayScreen() {
           >
             Display
           </ThemedText>
-          <View style={{ width: 28 }} /> {/* spacer */}
+          <View style={{ width: 28 }} />
         </View>
 
-        {/* Theme Options */}
         <View style={styles.optionsContainer}>
           {renderOption('Light Mode', 'light')}
           {renderOption('Dark Mode', 'dark')}

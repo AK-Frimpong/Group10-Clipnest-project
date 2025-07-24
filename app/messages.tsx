@@ -12,6 +12,7 @@ const DUMMY_USERS = [
   { username: 'johndoe', name: 'John Doe' },
   { username: 'minimalist', name: 'Minimalist User' },
   { username: 'artlover', name: 'Art Lover' },
+  { username: 'jermaine', name: 'Jermaine' },
 ];
 
 function formatTimestamp(date: Date) {
@@ -140,47 +141,51 @@ export default function MessagesScreen() {
           data={usersToShow}
           keyExtractor={item => item.username}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.userRow} onPress={() => handleOpenChat(item.username)}>
-              <Ionicons name="person-circle-outline" size={28} color={isDarkMode ? '#4EE0C1' : '#181D1C'} />
-              <View style={{ marginLeft: 12, flex: 1 }}>
-                <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>{item.username}</Text>
-                {item.lastMessage !== undefined && item.lastMessage !== '' && (
-                  <Text
-                    style={{
-                      color: item.lastSender === 'them' ? '#27403B' : (isDarkMode ? '#aaa' : '#555'),
-                      fontSize: 14,
-                      marginTop: 2,
-                      fontStyle: item.lastIsImage ? 'italic' : 'normal',
-                      opacity: item.lastIsImage ? 0.7 : 1,
-                      fontWeight: item.unreadCount > 0 ? 'bold' : 'normal',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {item.lastIsImage ? 'image' : item.lastMessage}
+            <View style={styles.userRow}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/UserProfileScreen', params: { username: item.username } })} hitSlop={10}>
+                <Ionicons name="person-circle-outline" size={28} color={isDarkMode ? '#4EE0C1' : '#181D1C'} />
+              </TouchableOpacity>
+              <TouchableOpacity style={{ marginLeft: 12, flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => handleOpenChat(item.username)} activeOpacity={0.8}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>{item.username}</Text>
+                  {item.lastMessage !== undefined && item.lastMessage !== '' && (
+                    <Text
+                      style={{
+                        color: item.lastSender === 'them' ? '#27403B' : (isDarkMode ? '#aaa' : '#555'),
+                        fontSize: 14,
+                        marginTop: 2,
+                        fontStyle: item.lastIsImage ? 'italic' : 'normal',
+                        opacity: item.lastIsImage ? 0.7 : 1,
+                        fontWeight: item.unreadCount > 0 ? 'bold' : 'normal',
+                      }}
+                      numberOfLines={1}
+                    >
+                      {item.lastIsImage ? 'image' : item.lastMessage}
+                    </Text>
+                  )}
+                </View>
+                {item.lastTimestamp !== undefined && (
+                  <Text style={{ color: isDarkMode ? '#aaa' : '#555', fontSize: 13, marginLeft: 8, textAlign: 'right', minWidth: 70 }}>
+                    {formatTimestamp(new Date(item.lastTimestamp))}
                   </Text>
                 )}
-              </View>
-              {item.lastTimestamp !== undefined && (
-                <Text style={{ color: isDarkMode ? '#aaa' : '#555', fontSize: 13, marginLeft: 8, textAlign: 'right', minWidth: 70 }}>
-                  {formatTimestamp(new Date(item.lastTimestamp))}
-                </Text>
-              )}
-              {/* Unread badge */}
-              {item.unreadCount > 0 && (
-                <View style={{
-                  backgroundColor: '#7BD4C8',
-                  borderRadius: 12,
-                  minWidth: 24,
-                  height: 24,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: 10,
-                  paddingHorizontal: 6,
-                }}>
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>{item.unreadCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+                {/* Unread badge */}
+                {item.unreadCount > 0 && (
+                  <View style={{
+                    backgroundColor: '#7BD4C8',
+                    borderRadius: 12,
+                    minWidth: 24,
+                    height: 24,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: 10,
+                    paddingHorizontal: 6,
+                  }}>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>{item.unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           )}
           ListEmptyComponent={
             <View style={styles.emptyState}>

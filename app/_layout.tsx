@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { UserProvider } from '../hooks/UserContext';
 import { ThemeProvider } from '../theme/themecontext';
+import { PinBoardProvider } from './context/PinBoardContext';
 
 export default function RootLayout() {
   const [isAuthenticated] = useState(false);
@@ -27,7 +28,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <UserProvider>
+        <PinBoardProvider>
           <Stack
             screenOptions={{
               headerShown: false,
@@ -49,7 +50,7 @@ export default function RootLayout() {
               }}
             />
           </Stack>
-        </UserProvider>
+        </PinBoardProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

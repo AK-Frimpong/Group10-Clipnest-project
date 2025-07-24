@@ -1,18 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../hooks/UserContext';
 import { useThemeContext } from '../../theme/themecontext'; //  FIXED PATH
+import { ImageItem, PinBoardContext } from '../context/PinBoardContext';
 import EditProfileModal from '../modals/EditProfileModal';
 
 export default function ProfileScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const router = useRouter();
-  const { isDarkMode } = useThemeContext();
   const { user } = useUser();
+  
+  const { isDarkMode } = useThemeContext();
+  const { pins, collages } = useContext(PinBoardContext);
+  const [activeTab, setActiveTab] = useState<'clips' | 'boards' | 'collages' | 'saved' | 'created'>('clips');
 
-  // Fallbacks for demo/local state if user is not set
   const [name, setName] = useState('Alvin');
   const [username, setUsername] = useState('alvinnn');
   const [bio, setBio] = useState('Basketball, Fragrance, Cars');
@@ -64,10 +67,79 @@ export default function ProfileScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      {/* Pins grid placeholder */}
-      <View style={styles.pinsGridPlaceholder}>
-        <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>[Pins grid coming soon]</Text>
+      {/* Tab Bar */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 32, borderBottomWidth: 1, borderColor: isDarkMode ? '#333' : '#ddd' }}>
+        {[
+          { key: 'created', label: 'Created' },
+          { key: 'clips', label: 'Clips' },
+          { key: 'boards', label: 'Boards' },
+          { key: 'collages', label: 'Collages' },
+          { key: 'saved', label: 'Saved' },
+        ].map(tab => (
+          <TouchableOpacity key={tab.key} onPress={() => setActiveTab(tab.key as any)} style={{ alignItems: 'center', flex: 1, paddingVertical: 10 }}>
+            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: 16, fontWeight: activeTab === tab.key ? 'bold' : 'normal' }}>{tab.label}</Text>
+            {activeTab === tab.key && <View style={{ height: 3, width: 28, backgroundColor: isDarkMode ? '#fff' : '#000', borderRadius: 2, marginTop: 4 }} />}
+          </TouchableOpacity>
+        ))}
       </View>
+      {/* Tab Content */}
+      {activeTab === 'clips' && (
+        <View style={{ marginTop: 24, minHeight: 200 }}>
+          {pins.length === 0 ? (
+            <Text style={{ color: isDarkMode ? '#888' : '#aaa', textAlign: 'center', marginTop: 32 }}>No clips yet.</Text>
+          ) : (
+            <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 24 }}>
+              {pins.map((clip: ImageItem, idx: number) => (
+                <TouchableOpacity
+                  key={clip.id}
+                  onPress={() => router.push({
+                    pathname: '/ImageDetailsScreen',
+                    params: { index: idx, images: JSON.stringify(pins) },
+                  })}
+                >
+                  <Image source={{ uri: clip.url }} style={{ width: 120, height: 120, borderRadius: 12, marginBottom: 12 }} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      )}
+      {activeTab === 'boards' && (
+        <View style={{ marginTop: 24, minHeight: 200, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>No boards yet.</Text>
+        </View>
+      )}
+      {activeTab === 'collages' && (
+        <View style={{ marginTop: 24, minHeight: 200 }}>
+          {collages.length === 0 ? (
+            <Text style={{ color: isDarkMode ? '#888' : '#aaa', textAlign: 'center', marginTop: 32 }}>No collages yet.</Text>
+          ) : (
+            <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 24 }}>
+              {collages.map((collage: ImageItem, idx: number) => (
+                <TouchableOpacity
+                  key={collage.id}
+                  onPress={() => router.push({
+                    pathname: '/ImageDetailsScreen',
+                    params: { index: idx, images: JSON.stringify(collages) },
+                  })}
+                >
+                  <Image source={{ uri: collage.url }} style={{ width: 120, height: 120, borderRadius: 12, marginBottom: 12 }} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      )}
+      {activeTab === 'saved' && (
+        <View style={{ marginTop: 24, minHeight: 200, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>No saved items yet.</Text>
+        </View>
+      )}
+      {activeTab === 'created' && (
+        <View style={{ marginTop: 24, minHeight: 200, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>No created items yet.</Text>
+        </View>
+      )}
 
       <EditProfileModal
         visible={isModalVisible}
