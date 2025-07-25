@@ -42,7 +42,7 @@ export default function UserProfileScreen() {
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: isDarkMode ? '#252A29' : '#eee', marginRight: 8 }]}
+                style={{ marginRight: 8 }}
                 onPress={async () => {
                   const profileUrl = `https://clipnest.com/user/${user.username}`;
                   await Share.share({
@@ -159,14 +159,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  messageButton: {
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 2,
   },
   followButton: {
     borderRadius: 20,

@@ -55,13 +55,25 @@ export default function RootLayout() {
     // Foreground notification listener
     notificationListener.current = Notifications.addNotificationReceivedListener(async notification => {
       setNotification(notification);
-      // Store notification in AsyncStorage (object with msg, timestamp, type, targetId)
       try {
+        // Check notification settings before storing
+        const settingsStr = await AsyncStorage.getItem('notificationSettings');
+        const settings = settingsStr ? JSON.parse(settingsStr) : {};
+        const content = notification.request.content;
+        const notifType = content.data?.type || null;
+        // If the notification type is disabled, skip storing
+        if (
+          notifType &&
+          ((notifType === 'like' && settings.likes === false) ||
+            (notifType === 'comment' && settings.comments === false) ||
+            (notifType === 'followers' && settings.followers === false) ||
+            (notifType === 'messages' && settings.messages === false))
+        ) {
+          return;
+        }
+        // Store notification in AsyncStorage (object with msg, timestamp, type, targetId)
         const stored = await AsyncStorage.getItem('notifications');
         let notifications = stored ? JSON.parse(stored) : [];
-        const content = notification.request.content;
-        // Try to get type and targetId from notification data
-        const notifType = content.data?.type || null;
         const notifTargetId = content.data?.targetId || null;
         const notifMsg = content.body || 'New notification';
         const notifObj = {

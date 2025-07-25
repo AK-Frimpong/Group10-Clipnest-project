@@ -1,5 +1,6 @@
 import { useThemeContext } from '@/theme/themecontext';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
@@ -15,22 +16,33 @@ export default function PrivacyScreen() {
 
   const [settings, setSettings] = useState<SettingsType>({
     privateAccount: false,
-    showActivity: true,
     allowMessages: true,
   });
 
+  // Load settings from AsyncStorage on mount
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('privacySettings');
+        if (stored) {
+          setSettings(JSON.parse(stored));
+        }
+      } catch {}
+    })();
+  }, []);
+
   const toggleSwitch = (key: keyof SettingsType) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setSettings(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      AsyncStorage.setItem('privacySettings', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const options = [
-  { title: 'Private Account', key: 'privateAccount' as keyof SettingsType, description: 'Only approved followers can see your posts' },
-  { title: 'Activity Status', key: 'showActivity' as keyof SettingsType, description: 'Show when you were last active' },
-  { title: 'Direct Messages', key: 'allowMessages' as keyof SettingsType, description: 'Allow others to send you messages' },
-];
+    { title: 'Private Account', key: 'privateAccount' as keyof SettingsType, description: 'Only approved followers can see your posts' },
+    { title: 'Direct Messages', key: 'allowMessages' as keyof SettingsType, description: 'Allow others to send you messages' },
+  ];
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}>
@@ -105,9 +117,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: 'rgba(238, 238, 238, 0.2)',
   },
   optionTextContainer: {
     flex: 1,

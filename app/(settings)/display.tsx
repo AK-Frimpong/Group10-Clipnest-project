@@ -20,12 +20,7 @@ export default function DisplayScreen() {
     return (
       <TouchableOpacity
         onPress={() => setTheme(value)}
-        style={[
-          styles.optionRow,
-          {
-            borderColor: isDarkMode ? '#181D1C' : '#F3FAF8',
-          },
-        ]}
+        style={styles.optionRow}
       >
         <ThemedText
           style={[
@@ -54,14 +49,7 @@ export default function DisplayScreen() {
       ]}
     >
       <View style={styles.container}>
-        <View
-          style={[
-            styles.header,
-            {
-              borderColor: isDarkMode ? '#181D1C' : '#F3FAF8',
-            },
-          ]}
-        >
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
@@ -121,8 +109,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
+    borderColor: 'rgba(238, 238, 238, 0.2)',
   },
   optionLabel: {
     fontSize: 16,

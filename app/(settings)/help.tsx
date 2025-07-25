@@ -121,9 +121,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: 'rgba(238, 238, 238, 0.2)',
   },
   optionLeft: {
     flexDirection: 'row',

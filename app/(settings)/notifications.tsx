@@ -1,5 +1,5 @@
 import { useThemeContext } from '@/theme/themecontext';
-import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
@@ -16,11 +16,24 @@ export default function NotificationsScreen() {
     emailNotifications: false,
   });
 
+  // Load settings from AsyncStorage on mount
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('notificationSettings');
+        if (stored) {
+          setSettings(JSON.parse(stored));
+        }
+      } catch {}
+    })();
+  }, []);
+
   const toggleSwitch = (key: keyof typeof settings) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setSettings(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      AsyncStorage.setItem('notificationSettings', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const options = [
@@ -96,9 +109,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: 'rgba(238, 238, 238, 0.2)',
   },
   option: {
     fontSize: 16,

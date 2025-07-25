@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../hooks/UserContext';
 import { useThemeContext } from '../../theme/themecontext'; //  FIXED PATH
 import { ImageItem, PinBoardContext } from '../context/PinBoardContext';
@@ -36,9 +36,33 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={openSettings}>
           <Ionicons name="settings-outline" size={28} color={isDarkMode ? 'white' : 'black'} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => alert('Share profile tapped')}>
-          <Ionicons name="share-social-outline" size={28} color={isDarkMode ? 'white' : 'black'} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', flex: 1 }}>
+          <View style={{ minWidth: 40, alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => {
+                router.push( '/analytics' as any);
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="bar-chart" size={24} color={isDarkMode ? 'white' : 'black'} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ minWidth: 40, alignItems: 'center', marginLeft: 10 }}>
+            <TouchableOpacity
+              onPress={async () => {
+                const profileUrl = `https://clipnest.com/user/${user?.username || username}`;
+                await Share.share({
+                  message: `Check out this profile: ${profileUrl}`,
+                  url: profileUrl,
+                  title: `Profile of ${user?.id || name}`,
+                });
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="share" size={24} color={isDarkMode ? 'white' : 'black'} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
       <View style={styles.topSection}>
         {avatar ? (
