@@ -28,29 +28,31 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <PinBoardProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: 'fade',
-            }}
-          >
-            <Stack.Screen name="index" options={{ animation: 'none' }} />
-            {isAuthenticated ? (
-              <Stack.Screen name="(tabs)" />
-            ) : (
-              <Stack.Screen name="auth" />
-            )}
-            <Stack.Screen name="settings" />
-            <Stack.Screen
-              name="modals/PostCreationModal"
-              options={{
-                presentation: 'transparentModal',
-                animation: 'slide_from_bottom',
+        <UserProvider>
+          <PinBoardProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'fade',
               }}
-            />
-          </Stack>
-        </PinBoardProvider>
+            >
+              <Stack.Screen name="index" options={{ animation: 'none' }} />
+              {isAuthenticated ? (
+                <Stack.Screen name="(tabs)" />
+              ) : (
+                <Stack.Screen name="auth" />
+              )}
+              <Stack.Screen name="settings" />
+              <Stack.Screen
+                name="modals/PostCreationModal"
+                options={{
+                  presentation: 'transparentModal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </Stack>
+          </PinBoardProvider>
+        </UserProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
