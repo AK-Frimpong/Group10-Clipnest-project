@@ -66,37 +66,33 @@ export default function ChatScreen() {
   const [pinSearch, setPinSearch] = useState('');
   const [pinTab, setPinTab] = useState<'all' | 'yours'>('all');
 
-  // Load messages from AsyncStorage on mount and when screen is focused
+  // Load messages and blocked users from AsyncStorage on mount and when screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      const loadMessages = async () => {
-        try {
-          const stored = await AsyncStorage.getItem(storageKey);
-          if (stored) setMessages(JSON.parse(stored));
-          else setMessages([]);
-        } catch {}
-      };
-      loadMessages();
-    }, [storageKey])
-  );
-
-  // Load blocked users from AsyncStorage
-  useEffect(() => {
-    const loadBlocked = async () => {
+    const loadMessages = async () => {
       try {
-        const stored = await AsyncStorage.getItem(`blocked_users_${user?.id || 'unknown'}`);
-        if (stored) {
-          const arr = JSON.parse(stored);
-          setBlocked(Array.isArray(arr) && arr.includes(safeUsername));
-        } else {
+        const stored = await AsyncStorage.getItem(storageKey);
+        if (stored) setMessages(JSON.parse(stored));
+          else setMessages([]);
+      } catch {}
+    };
+      const loadBlocked = async () => {
+        try {
+          const stored = await AsyncStorage.getItem(`blocked_users_${user?.id || 'unknown'}`);
+          if (stored) {
+            const arr = JSON.parse(stored);
+            setBlocked(Array.isArray(arr) && arr.includes(safeUsername));
+          } else {
+            setBlocked(false);
+          }
+        } catch {
           setBlocked(false);
         }
-      } catch {
-        setBlocked(false);
-      }
-    };
-    loadBlocked();
-  }, [safeUsername, user?.id]);
+      };
+    loadMessages();
+      loadBlocked();
+    }, [storageKey, safeUsername, user?.id])
+  );
 
   // Save messages to AsyncStorage
   const saveMessages = async (msgs: Message[]) => {
@@ -278,30 +274,39 @@ export default function ChatScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <View style={[styles.container, { backgroundColor }]}>
-          {/* Header with back button, profile icon, username, and three dots */}
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 6 }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
+      <View style={[styles.container, { backgroundColor }]}>
+        {/* Header with back button, profile icon, username, and three dots */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 6 }}>
               <Ionicons
                 name="arrow-back"
                 size={28}
                 color={isDarkMode ? '#F3FAF8' : '#181D1C'}
               />
             </TouchableOpacity>
-            <View style={styles.profileIconWrapper}>
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '/UserProfileScreen', params: { username: safeUsername } })}
+              style={styles.profileIconWrapper}
+              hitSlop={10}
+            >
               <Ionicons
                 name="person-circle-outline"
                 size={38}
                 color={isDarkMode ? '#F3FAF8' : '#181D1C'}
               />
-            </View>
-            <Text style={[styles.headerName, { color: textColor }]}>{safeUsername}</Text>
-            <View style={{ flex: 1 }} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '/UserProfileScreen', params: { username: safeUsername } })}
+              hitSlop={10}
+            >
+              <Text style={[styles.headerName, { color: textColor }]}>{safeUsername}</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
             <TouchableOpacity
               onPress={() =>
                 router.push({ pathname: '/chat/settings/[username]', params: { username: safeUsername } })
@@ -312,13 +317,13 @@ export default function ChatScreen() {
                 size={28}
                 color={isDarkMode ? '#F3FAF8' : '#181D1C'}
               />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
+        </View>
           {/* (keep the replyTo text above the input box only, as already present below the FlatList) */}
-          <FlatList
-            ref={flatListRef}
+        <FlatList
+          ref={flatListRef}
             data={messages.filter(m => !(m.deletedFor || []).includes(user?.id || 'unknown'))}
-            keyExtractor={item => item.id}
+          keyExtractor={item => item.id}
             renderItem={({ item, index }) => {
               const isReplying = replyTo && replyTo.id === item.id;
               if (!swipeableRefs.current[item.id]) {
@@ -363,10 +368,10 @@ export default function ChatScreen() {
                           </Text>
                         );
                       })()}
-                      <View
-                        style={[
-                          styles.messageRow,
-                          item.sender === 'me'
+            <View
+              style={[
+                styles.messageRow,
+                item.sender === 'me'
                             ? [styles.myMsg, { backgroundColor: '#7BD4C8' }]
                             : [styles.theirMsg, { backgroundColor: '#7BD4C8' }],
                           item.imageUri && { backgroundColor: 'transparent', padding: 0, marginBottom: 8 },
@@ -449,22 +454,22 @@ export default function ChatScreen() {
               </TouchableOpacity>
             </View>
           )}
-          <View style={[styles.inputRow, { backgroundColor }]}>
+        <View style={[styles.inputRow, { backgroundColor }]}>
             {/* Plus (+) button for pins */}
             <TouchableOpacity style={{ marginRight: 8 }} onPress={handlePlusPress}>
               <Ionicons name="add" size={28} color={textColor} />
             </TouchableOpacity>
-            <TextInput
-              style={[
-                styles.input,
+          <TextInput
+            style={[
+              styles.input,
                 { backgroundColor, color: textColor, borderColor: isDarkMode ? '#333' : '#ccc', minHeight: 40, maxHeight: 120, height: inputHeight },
-              ]}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Type a message..."
-              placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
+            ]}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Type a message..."
+            placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
               onSubmitEditing={blocked ? undefined : (editMode ? handleEdit : handleSend)}
-              returnKeyType="send"
+            returnKeyType="send"
               editable={!blocked && !editMode}
               multiline
               onContentSizeChange={e => {
@@ -478,8 +483,8 @@ export default function ChatScreen() {
               disabled={blocked}
             >
               <Text style={styles.sendBtnText}>{editMode ? 'Save' : 'Send'}</Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
+        </View>
           {/* Action Sheet for long-press */}
           <Modal visible={actionSheetVisible} transparent animationType="fade" onRequestClose={() => setActionSheetVisible(false)}>
             <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' }} onPress={() => setActionSheetVisible(false)}>
@@ -497,19 +502,19 @@ export default function ChatScreen() {
                 {/* Reply (always) */}
                 <TouchableOpacity onPress={handleReply} style={{ padding: 16 }}>
                   <Text style={{ color: textColor, fontWeight: 'bold' }}>Reply</Text>
-                </TouchableOpacity>
+              </TouchableOpacity>
                 {/* Edit (if applicable) */}
                 {selectedMsg && canEdit(selectedMsg) && selectedMsg.sender === 'me' && (
                   <TouchableOpacity onPress={() => { setEditMode(true); setActionSheetVisible(false); }} style={{ padding: 16 }}>
                     <Text style={{ color: textColor, fontWeight: 'bold' }}>Edit</Text>
-                  </TouchableOpacity>
+              </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setActionSheetVisible(false)} style={{ padding: 16 }}>
                   <Text style={{ color: textColor }}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </Pressable>
-          </Modal>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
           {/* Image preview modal */}
           <Modal visible={!!imagePreviewUri} transparent animationType="fade" onRequestClose={() => setImagePreviewUri(null)}>
             <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' }} onPress={() => setImagePreviewUri(null)}>
@@ -561,7 +566,7 @@ export default function ChatScreen() {
                   >
                     <Text style={{ color: pinTab === 'all' ? '#181D1C' : textColor, fontWeight: 'bold' }}>All</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
+                <TouchableOpacity
                     onPress={() => setPinTab('yours')}
                     style={{
                       backgroundColor: pinTab === 'yours' ? (isDarkMode ? '#7BD4C8' : '#7BD4C8') : 'transparent',
@@ -591,7 +596,7 @@ export default function ChatScreen() {
                       return (
                         <TouchableOpacity onPress={() => handleSendPin(pin.url)} style={{ margin: 8 }}>
                           <Image source={{ uri: pin.url }} style={{ width: displayWidth, height: displayHeight, borderRadius: 18 }} resizeMode="cover" />
-                        </TouchableOpacity>
+                </TouchableOpacity>
                       );
                     }}
                     contentContainerStyle={{ paddingBottom: 24, alignItems: 'center', justifyContent: 'center' }}
@@ -615,11 +620,11 @@ export default function ChatScreen() {
                     }
                   />
                 )}
-              </View>
-            </Pressable>
-          </Modal>
-        </View>
-      </KeyboardAvoidingView>
+            </View>
+          </Pressable>
+        </Modal>
+      </View>
+    </KeyboardAvoidingView>
     </GestureHandlerRootView>
   );
 }
@@ -636,8 +641,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     marginTop: 40,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
   },
   profileIconWrapper: {
     marginRight: 10,
@@ -657,6 +660,7 @@ const styles = StyleSheet.create({
   },
   theirMsg: {
     alignSelf: 'flex-start',
+    marginBottom: 5,
   },
   msgText: { fontSize: 16 },
   statusText: {
@@ -670,7 +674,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 8,
-    borderTopWidth: 1,
   },
   input: {
     flex: 1,

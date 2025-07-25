@@ -13,6 +13,14 @@ const NOTIF_OPTIONS = [
   'Mute until I turn on',
 ];
 
+const REPORT_REASONS = [
+  'Spam',
+  'Self Harm',
+  'Harassment',
+  'Underage User',
+  'Nudity or Pornography',
+];
+
 export default function ChatSettingsScreen() {
   const { user } = useUser();
   const { username } = useLocalSearchParams();
@@ -23,6 +31,10 @@ export default function ChatSettingsScreen() {
   const [notifSetting, setNotifSetting] = useState('On');
   const [hidden, setHidden] = useState(false);
   const [clearModal, setClearModal] = useState(false);
+  const [reportModal, setReportModal] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [reportedModal, setReportedModal] = useState(false);
 
   // Load blocked users from AsyncStorage
   useEffect(() => {
@@ -36,6 +48,17 @@ export default function ChatSettingsScreen() {
       } catch {}
     };
     loadBlocked();
+    // Load hidden state from AsyncStorage
+    const loadHidden = async () => {
+      try {
+        const key = `hidden_conversations_${user?.id || 'unknown'}`;
+        const stored = await AsyncStorage.getItem(key);
+        let arr = stored ? JSON.parse(stored) : [];
+        if (!Array.isArray(arr)) arr = [];
+        setHidden(arr.includes(safeUsername));
+      } catch {}
+    };
+    loadHidden();
   }, [safeUsername, user?.id]);
 
   // Block/unblock logic
@@ -68,6 +91,25 @@ export default function ChatSettingsScreen() {
     }
   };
 
+  // Hide Conversation logic with AsyncStorage
+  const handleHideToggle = async () => {
+    try {
+      const key = `hidden_conversations_${user?.id || 'unknown'}`;
+      const stored = await AsyncStorage.getItem(key);
+      let arr = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(arr)) arr = [];
+      if (!hidden) {
+        // Hide: add username
+        if (!arr.includes(safeUsername)) arr.push(safeUsername);
+      } else {
+        // Unhide: remove username
+        arr = arr.filter((u: string) => u !== safeUsername);
+      }
+      await AsyncStorage.setItem(key, JSON.stringify(arr));
+      setHidden(h => !h);
+    } catch {}
+  };
+
   return (
     <View style={[styles.container, { backgroundColor }]}> 
       {/* Header */}
@@ -86,12 +128,16 @@ export default function ChatSettingsScreen() {
         <Text style={[styles.settingText, { color: textColor }]}>Notifications: {notifSetting}</Text>
       </TouchableOpacity>
       {/* Hide Conversation */}
-      <TouchableOpacity style={styles.settingBtn} onPress={() => setHidden(h => !h)}>
+      <TouchableOpacity style={styles.settingBtn} onPress={handleHideToggle}>
         <Text style={[styles.settingText, { color: textColor }]}>{hidden ? 'Show conversation' : 'Hide conversation'}</Text>
       </TouchableOpacity>
       {/* Clear Conversation */}
       <TouchableOpacity style={styles.settingBtn} onPress={() => setClearModal(true)}>
         <Text style={[styles.settingText, { color: textColor }]}>Clear Conversation</Text>
+      </TouchableOpacity>
+      {/* Report */}
+      <TouchableOpacity style={styles.settingBtn} onPress={() => setReportModal(true)}>
+        <Text style={[styles.settingText, { color: textColor }]}>Report</Text>
       </TouchableOpacity>
       {hidden && (
         <Text style={{ color: isDarkMode ? '#aaa' : '#555', marginTop: 20, textAlign: 'center' }}>
@@ -106,7 +152,7 @@ export default function ChatSettingsScreen() {
         onRequestClose={() => setNotifModal(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setNotifModal(false)}>
-          <View style={[styles.modalSheet, { backgroundColor: cardColor }]}> 
+          <View style={[styles.modalSheet, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8', borderRadius: 18 }]}> 
             {NOTIF_OPTIONS.map(option => (
               <TouchableOpacity
                 key={option}
@@ -152,6 +198,89 @@ export default function ChatSettingsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Report Modal */}
+      <Modal
+        visible={reportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReportModal(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setReportModal(false)}>
+          <View style={[styles.modalContent, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8', width: 320 }]}> 
+            <Text style={[styles.modalText, { color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold', fontSize: 20, marginBottom: 18 }]}>Report User</Text>
+            {REPORT_REASONS.map(reason => (
+              <TouchableOpacity
+                key={reason}
+                style={{ paddingVertical: 14, alignItems: 'center', width: '100%' }}
+                onPress={() => {
+                  setSelectedReason(reason);
+                  setReportModal(false);
+                  setTimeout(() => setConfirmModal(true), 200);
+                }}
+              >
+                <Text style={{ color: textColor, fontSize: 17 }}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
+      {/* Confirm Report Modal */}
+      <Modal
+        visible={confirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8', width: 320 }]}> 
+            <Text style={[styles.modalText, { color: isDarkMode ? '#F3FAF8' : '#181D1C', fontSize: 18, marginBottom: 18 }]}>Are you sure you want to report this user for{selectedReason ? ` "${selectedReason}"` : ''}?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}
+                onPress={() => {
+                  setConfirmModal(false);
+                  setTimeout(() => setReportedModal(true), 200);
+                }}
+              >
+                <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}
+                onPress={() => setConfirmModal(false)}
+              >
+                <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Reported Modal */}
+      <Modal
+        visible={reportedModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReportedModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8', width: 280, alignItems: 'center' }]}> 
+            <Text style={[styles.modalText, { color: isDarkMode ? '#F3FAF8' : '#181D1C', fontSize: 18, marginBottom: 18 }]}>User reported!</Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8',
+                borderRadius: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 32,
+                minWidth: 100,
+                alignItems: 'center',
+                marginTop: 8,
+              }}
+              onPress={() => setReportedModal(false)}
+            >
+              <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold', fontSize: 16 }}>OK</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

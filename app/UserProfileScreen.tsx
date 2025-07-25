@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeContext } from '../theme/themecontext';
 
 const mockCreated: { id: string; uri: string; type: string; duration?: string }[] = [
@@ -25,60 +25,84 @@ export default function UserProfileScreen() {
   const user = {
     name: params.name || (params.username ? String(params.username).charAt(0).toUpperCase() + String(params.username).slice(1) : 'User'),
     username: params.username || 'unknown',
-    followers: 0,
-    following: 0,
     avatar: null,
   };
+  // Local state for followers/following and follow status
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState(0);
   const posts: { id: string; uri: string; type: string; duration?: string }[] = [];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}> 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {router.canGoBack?.() !== false && (
-          <TouchableOpacity style={{ marginTop: 16, marginLeft: 8, width: 32 }} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#fff' : '#222'} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginHorizontal: 8 }}>
+            <TouchableOpacity style={{ width: 32 }} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#F3FAF8' : '#222'} />
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: isDarkMode ? '#252A29' : '#eee', marginRight: 8 }]}
+                onPress={async () => {
+                  const profileUrl = `https://clipnest.com/user/${user.username}`;
+                  await Share.share({
+                    message: `Check out this profile: ${profileUrl}`,
+                    url: profileUrl,
+                    title: `Profile of ${user.name}`,
+                  });
+                }}
+              >
+                <Feather name="share" size={20} color={isDarkMode ? '#F3FAF8' : '#222'} />
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
         <View style={{ alignItems: 'center', marginTop: 8 }}>
           {user.avatar ? (
             <Image source={{ uri: user.avatar }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, { backgroundColor: '#2196f3', justifyContent: 'center', alignItems: 'center' }]}> 
-              <Text style={{ color: '#fff', fontSize: 40, fontWeight: 'bold' }}>{user.name[0]}</Text>
+            <View style={[styles.avatar, { backgroundColor: '#27403B', justifyContent: 'center', alignItems: 'center' }]}> 
+              <Text style={{ color: '#F3FAF8', fontSize: 40, fontWeight: 'bold' }}>{user.name[0]}</Text>
             </View>
           )}
-          <Text style={[styles.name, { color: '#fff', marginTop: 12 }]}>{user.name}</Text>
-          <Text style={[styles.username, { color: '#aaa', marginTop: 2 }]}>@{user.username}</Text>
-          <Text style={[styles.stats, { color: '#aaa', marginTop: 8 }]}>0 followers · 0 following</Text>
+          <Text style={[styles.name, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 12 }]}>{user.name}</Text>
+          <Text style={[styles.username, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 2 }]}>@{user.username}</Text>
+          <Text style={[styles.stats, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 8 }]}> 
+            {followers} followers · 0 following
+          </Text>
         </View>
         <View style={styles.actionRow}>
-          <TouchableOpacity style={[styles.actionButton, { backgroundColor: isDarkMode ? '#252A29' : '#eee' }]}> 
-            <Feather name="share" size={20} color={isDarkMode ? '#fff' : '#222'} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.messageButton, { backgroundColor: '#333' }]}> 
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Message</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.followButton, { backgroundColor: '#4EE0C1' }]}> 
-            <Text style={{ color: '#181D1C', fontWeight: 'bold', fontSize: 16 }}>Follow</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionButton, { backgroundColor: isDarkMode ? '#252A29' : '#eee' }]}> 
-            <Feather name="more-horizontal" size={20} color={isDarkMode ? '#fff' : '#222'} />
-          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <TouchableOpacity
+              style={[styles.followButton, { backgroundColor: '#27403B', alignSelf: 'center' }]}
+              onPress={() => {
+                if (isFollowing) {
+                  setIsFollowing(false);
+                  setFollowers(f => Math.max(0, f - 1));
+                } else {
+                  setIsFollowing(true);
+                  setFollowers(f => f + 1);
+                }
+              }}
+            >
+              <Text style={{ color: '#F3FAF8', fontWeight: 'bold', fontSize: 16 }}>{isFollowing ? 'Following' : 'Follow'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         {/* Tabs */}
         <View style={styles.tabRow}>
           <TouchableOpacity style={styles.tab} onPress={() => setActiveTab('created')}>
-            <Text style={[styles.tabText, { color: '#fff', fontWeight: activeTab === 'created' ? 'bold' : 'normal' }]}>Created</Text>
-            {activeTab === 'created' && <View style={styles.tabUnderline} />}
+            <Text style={[styles.tabText, { color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: activeTab === 'created' ? 'bold' : 'normal' }]}>Created</Text>
+            {activeTab === 'created' && <View style={[styles.tabUnderline, { backgroundColor: isDarkMode ? '#F3FAF8' : '#181D1C' }]} />}
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab} onPress={() => setActiveTab('saved')}>
-            <Text style={[styles.tabText, { color: '#fff', fontWeight: activeTab === 'saved' ? 'bold' : 'normal' }]}>Saved</Text>
-            {activeTab === 'saved' && <View style={styles.tabUnderline} />}
+            <Text style={[styles.tabText, { color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: activeTab === 'saved' ? 'bold' : 'normal' }]}>Saved</Text>
+            {activeTab === 'saved' && <View style={[styles.tabUnderline, { backgroundColor: isDarkMode ? '#F3FAF8' : '#181D1C' }]} />}
           </TouchableOpacity>
         </View>
         {/* Grid */}
         {posts.length === 0 ? (
-          <Text style={{ color: isDarkMode ? '#aaa' : '#555', textAlign: 'center', marginTop: 32 }}>
+          <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', textAlign: 'center', marginTop: 32 }}>
             {activeTab === 'created' ? 'No created items yet.' : 'No saved items yet.'}
           </Text>
         ) : (
@@ -108,7 +132,6 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#2196f3',
   },
   name: {
     fontSize: 28,
@@ -171,7 +194,6 @@ const styles = StyleSheet.create({
   tabUnderline: {
     height: 3,
     width: 28,
-    backgroundColor: '#fff',
     borderRadius: 2,
     marginTop: 4,
   },

@@ -59,6 +59,10 @@ export default function MessagesScreen() {
     React.useCallback(() => {
       const loadConversations = async () => {
         const convos: any[] = [];
+        // Load hidden conversations
+        const hiddenKey = `hidden_conversations_${user?.id || 'unknown'}`;
+        const hiddenRaw = await AsyncStorage.getItem(hiddenKey);
+        const hiddenList = hiddenRaw ? JSON.parse(hiddenRaw) : [];
         for (const u of DUMMY_USERS) {
           const key = `chat_messages_${user?.id || 'unknown'}_${u.username}`;
           const stored = await AsyncStorage.getItem(key);
@@ -69,20 +73,23 @@ export default function MessagesScreen() {
             const msgs = JSON.parse(stored);
             if (Array.isArray(msgs) && msgs.length > 0) {
               const lastMsg = msgs[msgs.length - 1];
-              convos.push({
-                username: u.username,
-                lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : ''),
-                lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''),
-                lastTimestamp: lastMsg.timestamp,
-                unreadCount,
-              });
+              // Only show if not hidden (unless searching)
+              if (searchText.trim() !== '' || !hiddenList.includes(u.username)) {
+                convos.push({
+                  username: u.username,
+                  lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : ''),
+                  lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''),
+                  lastTimestamp: lastMsg.timestamp,
+                  unreadCount,
+                });
+              }
             }
           }
         }
         setConversations(convos);
       };
       loadConversations();
-    }, [user?.id])
+    }, [user?.id, searchText])
   );
 
   const handleSearch = (text: string) => {
@@ -151,7 +158,7 @@ export default function MessagesScreen() {
                   {item.lastMessage !== undefined && item.lastMessage !== '' && (
                     <Text
                       style={{
-                        color: item.lastSender === 'them' ? '#27403B' : (isDarkMode ? '#aaa' : '#555'),
+                        color: item.lastSender === 'them' ? '#181D1C' : (isDarkMode ? '#aaa' : '#555'),
                         fontSize: 14,
                         marginTop: 2,
                         fontStyle: item.lastIsImage ? 'italic' : 'normal',
