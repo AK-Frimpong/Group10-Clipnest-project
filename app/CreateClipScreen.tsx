@@ -1,6 +1,7 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
-import { Alert, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeContext } from '../theme/themecontext';
 import { ImageItem, PinBoardContext } from './context/PinBoardContext';
 
@@ -11,6 +12,7 @@ export default function CreateClipScreen() {
   const { isDarkMode } = useThemeContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
 
   const handleCreate = () => {
     if (!uri) {
@@ -26,36 +28,84 @@ export default function CreateClipScreen() {
     router.replace('/(tabs)/profile');
   };
 
+  const handleNext = () => {
+    // Navigate to description screen
+    router.push({
+      pathname: '/ClipDescriptionScreen',
+      params: { uri: uri as string, height: Number(height) || 250 },
+    });
+  };
+
+  const editingTools = [
+    { id: 'size', icon: 'crop-square', label: 'Size' },
+    { id: 'media', icon: 'image', label: 'Media' },
+    { id: 'text', icon: 'format-size', label: 'Text' },
+    { id: 'draw', icon: 'edit', label: 'Draw' },
+    { id: 'stickers', icon: 'sticker-emoji', label: 'Stickers' },
+    { id: 'audio', icon: 'mic', label: 'Audio' },
+    { id: 'filters', icon: 'tune', label: 'Filters' },
+  ];
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}> 
-      <View style={styles.previewContainer}>
-        {uri && (
-          <Image source={{ uri: uri as string }} style={styles.previewImage} resizeMode="cover" />
-        )}
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#222' }]}>Title</Text>
-        <TextInput
-          style={[styles.input, { color: isDarkMode ? '#fff' : '#222', borderColor: isDarkMode ? '#444' : '#ccc' }]}
-          placeholder="Tell everyone what your Clip is about"
-          placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
-          value={title}
-          onChangeText={setTitle}
-          maxLength={100}
-        />
-        <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#222', marginTop: 16 }]}>Description</Text>
-        <TextInput
-          style={[styles.input, { color: isDarkMode ? '#fff' : '#222', borderColor: isDarkMode ? '#444' : '#ccc', height: 80 }]}
-          placeholder="Add a description, mention or hashtags to your Clip."
-          placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-        <TouchableOpacity style={styles.createButton} onPress={handleCreate}>
-          <Text style={styles.createButtonText}>Create</Text>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.topButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color={isDarkMode ? '#fff' : '#222'} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.topButton}>
+          <Ionicons name="help-circle-outline" size={26} color={isDarkMode ? '#fff' : '#222'} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+          <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Photo Preview */}
+      <View style={styles.photoContainer}>
+        {uri && (
+          <Image 
+            source={{ uri: uri as string }} 
+            style={styles.photoPreview} 
+            resizeMode="cover" 
+          />
+        )}
+      </View>
+
+      {/* Editing Tools */}
+      <View style={styles.toolsContainer}>
+        {editingTools.map((tool) => (
+          <TouchableOpacity
+            key={tool.id}
+            style={[
+              styles.toolButton,
+              selectedTool === tool.id && styles.toolButtonSelected
+            ]}
+            onPress={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
+          >
+            <MaterialCommunityIcons 
+              name={tool.icon as any} 
+              size={24} 
+              color={selectedTool === tool.id ? '#4EE0C1' : (isDarkMode ? '#fff' : '#222')} 
+            />
+            <Text style={[
+              styles.toolLabel,
+              { color: selectedTool === tool.id ? '#4EE0C1' : (isDarkMode ? '#fff' : '#222') }
+            ]}>
+              {tool.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Tool Content Area (placeholder for now) */}
+      {selectedTool && (
+        <View style={styles.toolContent}>
+          <Text style={[styles.toolContentText, { color: isDarkMode ? '#fff' : '#222' }]}>
+            {selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)} tools coming soon...
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -63,44 +113,76 @@ export default function CreateClipScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
   },
-  previewContainer: {
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
-  previewImage: {
-    width: 220,
-    height: 220,
-    borderRadius: 16,
-    marginBottom: 8,
+  topButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  inputContainer: {
-    flex: 1,
+  nextButton: {
+    backgroundColor: '#E60023',
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
-  label: {
+  nextButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 6,
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  createButton: {
-    backgroundColor: '#0a7ea4',
-    borderRadius: 10,
-    paddingVertical: 14,
+  photoContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    padding: 20,
   },
-  createButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  toolsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  toolButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  toolButtonSelected: {
+    backgroundColor: 'rgba(78, 224, 193, 0.1)',
+  },
+  toolLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  toolContent: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  toolContentText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
 }); 

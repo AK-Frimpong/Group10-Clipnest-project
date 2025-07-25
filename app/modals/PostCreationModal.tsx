@@ -1,5 +1,4 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -26,21 +25,8 @@ export default function PostCreationModal({ visible, onClose }: Props) {
   const router = useRouter();
 
   const handleClip = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsMultipleSelection: false,
-      quality: 1,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      onClose();
-      router.push({
-        pathname: '/CreateClipScreen',
-        params: { uri: asset.uri, height: asset.height || 250 },
-      });
-    }
+    onClose();
+    router.push('/ClipMediaPickerScreen');
   };
 
   return (
