@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeContext } from '../theme/themecontext';
 import { logout } from './api/auth';
 
@@ -120,10 +120,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
   },
   header: {
-    height: 60,
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -138,15 +139,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   optionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: 'rgba(238, 238, 238, 0.2)',
   },
   option: {
     fontSize: 16,
