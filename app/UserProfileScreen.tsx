@@ -31,6 +31,9 @@ export default function UserProfileScreen() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
   const posts: { id: string; uri: string; type: string; duration?: string }[] = [];
+  const username = Array.isArray(user.username) ? user.username[0] : user.username;
+  // Light green for message button
+  const lightGreen = '#7BD4C8';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}> 
@@ -67,9 +70,15 @@ export default function UserProfileScreen() {
           )}
           <Text style={[styles.name, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 12 }]}>{user.name}</Text>
           <Text style={[styles.username, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 2 }]}>@{user.username}</Text>
-          <Text style={[styles.stats, { color: isDarkMode ? '#F3FAF8' : '#181D1C', marginTop: 8 }]}> 
-            {followers} followers · 0 following
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8 }}>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/user/[username]/followers', params: { username } })}>
+              <Text style={[styles.stats, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>0 followers</Text>
+            </TouchableOpacity>
+            <Text style={[styles.stats, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}> · </Text>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/user/[username]/following', params: { username } })}>
+              <Text style={[styles.stats, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>0 following</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.actionRow}>
           <View style={{ flex: 1, alignItems: 'center' }}>

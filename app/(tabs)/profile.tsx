@@ -72,19 +72,27 @@ export default function ProfileScreen() {
         )}
         <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{user?.id || name}</Text>
         <Text style={[styles.username, { color: isDarkMode ? '#aaa' : '#888' }]}>@{user?.username || username}</Text>
-        <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}>0 follower · 0 following</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => router.push('/followers')}>
+            <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}>0 follower</Text>
+          </TouchableOpacity>
+          <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}> · </Text>
+          <TouchableOpacity onPress={() => router.push('/following')}>
+            <Text style={[styles.statsLine, { color: isDarkMode ? '#aaa' : '#666' }]}>0 following</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.bio, { color: isDarkMode ? '#ccc' : '#555' }]}>{bio}</Text>
         <TouchableOpacity
           style={[
             styles.editButton,
-            { backgroundColor: isDarkMode ? '#444' : '#ddd' },
+            { backgroundColor: '#27403B' },
           ]}
           onPress={openModal}
         >
           <Text
             style={[
               styles.editButtonText,
-              { color: isDarkMode ? '#fff' : '#000' },
+              { color: '#F3FAF8' },
             ]}
           >
             Edit profile
