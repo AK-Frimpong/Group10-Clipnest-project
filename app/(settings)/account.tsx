@@ -17,6 +17,7 @@ export default function AccountSettingsScreen() {
   const options = [
     { title: 'Change Email', onPress: () => router.push('/(settings)/change-email') },
     { title: 'Change Password', onPress: () => router.push('/(settings)/change-password') },
+    { title: 'Blocked Users', onPress: () => router.push('/(settings)/blocked-users') },
     { title: 'Delete Account', onPress: () => setShowDeleteModal(true), textColor: '#FF6B6B' },
   ];
 

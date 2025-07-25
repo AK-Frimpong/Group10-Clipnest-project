@@ -55,6 +55,7 @@ type ImageItem = {
 export default function HomeScreen() {
   const { isDarkMode } = useThemeContext();
   const safeAreaTop = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
+  const textColor = isDarkMode ? '#F3FAF8' : '#181D1C';
   const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -220,6 +221,12 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor }}>
+      <View style={[styles.header, { backgroundColor }]}>
+        <View style={styles.headerContent}>
+          <Text style={[styles.headerText, { color: textColor }]}>For you</Text>
+          <View style={styles.headerUnderline} />
+        </View>
+      </View>
       {/* Pin/Share Modal */}
       <Modal
         visible={modalVisible}
@@ -265,7 +272,11 @@ export default function HomeScreen() {
             {renderColumn(rightColumn, false)}
           </View>
         )}
-        contentContainerStyle={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0 }}
+        contentContainerStyle={{ 
+          paddingTop: Platform.OS === 'android' 
+            ? (StatusBar.currentHeight || 0) + 70
+            : 70
+        }}
         style={{ backgroundColor }}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
@@ -285,7 +296,31 @@ const styles = StyleSheet.create({
   container: {
     padding: 8,
     flexDirection: 'row',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+  },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  headerContent: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  headerUnderline: {
+    height: 2,
+    width: 70, // Width to match the text "For you"
+    backgroundColor: '#181D1C',
+    marginTop: 4,
+    marginLeft: 8,
   },
   column: {
     flex: 1,
