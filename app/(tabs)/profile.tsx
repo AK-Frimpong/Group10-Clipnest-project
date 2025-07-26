@@ -24,7 +24,7 @@ export default function ProfileScreen() {
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
   const openSettings = () => {
-    router.push('/settings');
+    router.push('/(settings)/index');
   };
 
   return (

@@ -10,7 +10,6 @@ import { useThemeContext } from '../theme/themecontext';
 import { ImageItem, PinBoardContext } from './context/PinBoardContext';
 
 const screenWidth = Dimensions.get('window').width;
-const imageHeight = 350;
 
 export default function ImageDetailsScreen() {
   const router = useRouter();
@@ -25,6 +24,13 @@ export default function ImageDetailsScreen() {
   }, [images]);
   const [currentIndex, setCurrentIndex] = useState(Number(index) || 0);
   const currentImage = imagesArray[currentIndex];
+  
+  // Calculate image height based on aspect ratio
+  const imageHeight = useMemo(() => {
+    if (!currentImage?.width || !currentImage?.height) return 400; // fallback height
+    const aspectRatio = currentImage.height / currentImage.width;
+    return screenWidth * aspectRatio;
+  }, [currentImage]);
   
   // Like state
   const [likes, setLikes] = useState(123);
@@ -511,16 +517,18 @@ export default function ImageDetailsScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* Image with shared element transition and swipe gesture */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View style={[styles.imageContainer, animatedStyle]}>
+          <Animated.View style={[styles.imageContainer, animatedStyle, { height: imageHeight }]}>
             <TouchableWithoutFeedback onPress={handleDoubleTap}>
-              <View style={{ width: '100%', height: '100%' }}>
-                <Image
-                  source={{ uri: currentImage?.url }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  // @ts-ignore: shared element prop for future animation
-                  sharedTransitionTag={`image-${currentImage?.id}`}
-                />
+              <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                <View style={[styles.imageFrame, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}>
+                  <Image
+                    source={{ uri: currentImage?.url }}
+                    style={[styles.image, { height: imageHeight, borderRadius: 12 }]}
+                    resizeMode="contain"
+                    // @ts-ignore: shared element prop for future animation
+                    sharedTransitionTag={`image-${currentImage?.id}`}
+                  />
+                </View>
                 {/* Double tap like animation */}
                 {showLikeAnimation && (
                   <View style={styles.likeAnimationContainer}>
@@ -653,7 +661,7 @@ export default function ImageDetailsScreen() {
                 </View>
 
                 {/* Comment Input */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#232323' : '#F3FAF8', margin: 12, borderRadius: 24, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: isDarkMode ? '#444' : '#ccc' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#232323' : '#F3FAF8', margin: 12, borderRadius: 24, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: isDarkMode ? '#F3FAF8' : '#181D1C' }}>
                   <TextInput
                     ref={commentInputRef}
                     style={{ flex: 1, color: isDarkMode ? '#F3FAF8' : '#222', fontSize: 16, paddingVertical: 6 }}
@@ -821,14 +829,20 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: imageHeight,
     backgroundColor: '#eee',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  image: {
+  imageFrame: {
     width: screenWidth,
-    height: imageHeight,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: screenWidth - 40, // Account for frame padding
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   backButton: {
     position: 'absolute',

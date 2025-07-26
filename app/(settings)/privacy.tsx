@@ -16,6 +16,7 @@ export default function PrivacyScreen() {
 
   const [settings, setSettings] = useState<SettingsType>({
     privateAccount: false,
+    showActivity: true,
     allowMessages: true,
   });
 

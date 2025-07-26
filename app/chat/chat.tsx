@@ -688,7 +688,7 @@ export default function ChatScreen() {
           {editMode && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <TextInput
-                style={[styles.input, { flex: 1, backgroundColor, color: textColor, borderColor: isDarkMode ? '#333' : '#ccc' }]}
+                style={[styles.input, { flex: 1, backgroundColor, color: textColor, borderColor: isDarkMode ? '#F3FAF8' : '#181D1C' }]}
                 value={editText}
                 onChangeText={setEditText}
                 placeholder="Edit message..."
@@ -748,7 +748,7 @@ export default function ChatScreen() {
           <TextInput
             style={[
               styles.input,
-              { backgroundColor, color: textColor, borderColor: isDarkMode ? '#333' : '#ccc', minHeight: 40, maxHeight: 120, height: inputHeight },
+              { backgroundColor, color: textColor, borderColor: isDarkMode ? '#F3FAF8' : '#181D1C', minHeight: 40, maxHeight: 120, height: inputHeight },
               isRecording && { color: '#aaa', fontStyle: 'italic' },
             ]}
             value={isRecording ? `Recording... ${formatDuration(recordingDuration)}` : input}

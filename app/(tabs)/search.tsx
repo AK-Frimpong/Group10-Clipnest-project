@@ -1,3 +1,4 @@
+import MasonryList from '@react-native-seoul/masonry-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -46,6 +47,8 @@ type ImageItem = {
   url: string;
   title?: string;
   description?: string;
+  width?: number;
+  height?: number;
 };
 
 export default function SearchScreen() {
@@ -110,13 +113,23 @@ export default function SearchScreen() {
       let pexelsImages: ImageItem[] = [];
       if (results[0].status === 'fulfilled') {
         const unsplashData = results[0].value;
-        unsplashImages = (unsplashData.results || []).map((img: any) => ({ id: 'u_' + img.id, url: img.urls.small }));
+        unsplashImages = (unsplashData.results || []).map((img: any, index: number) => ({ 
+          id: `u_${img.id}_${page}_${index}`, 
+          url: img.urls.small,
+          width: img.width,
+          height: img.height,
+        }));
       }
       if (results[1].status === 'fulfilled') {
         const pexelsData = results[1].value;
-        pexelsImages = (pexelsData.photos || []).map((img: any) => ({ id: 'p_' + img.id, url: img.src.medium }));
+        pexelsImages = (pexelsData.photos || []).map((img: any, index: number) => ({ 
+          id: `p_${img.id}_${page}_${index}`, 
+          url: img.src.medium,
+          width: img.width,
+          height: img.height,
+        }));
       }
-      const merged = [...unsplashImages, ...pexelsImages];
+      const merged = reset ? [...unsplashImages, ...pexelsImages] : [...images, ...unsplashImages, ...pexelsImages];
       setImages(merged);
       pageRef.current = page + 1;
       setHasMore(unsplashImages.length + pexelsImages.length > 0);
@@ -151,21 +164,39 @@ export default function SearchScreen() {
     }
   };
 
-  const renderItem = ({ item, index }: { item: ImageItem, index: number }) => (
-    <TouchableOpacity
-      onPress={() => router.push({
-        pathname: '/ImageDetailsScreen',
-        params: { index, images: JSON.stringify(images) },
-      })}
-      activeOpacity={0.85}
-    >
-      <Image
-        source={{ uri: item.url }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item, i }: { item: unknown, i: number }) => {
+    const imageItem = item as ImageItem;
+    const screenWidth = Dimensions.get('window').width;
+    const displayWidth = (screenWidth - 48) / 2; // 2 columns with margins
+    const displayHeight = imageItem.width && imageItem.height
+      ? Math.round((imageItem.height / imageItem.width) * displayWidth)
+      : 200; // fallback height
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          // Find the correct index in the images array
+          const correctIndex = (images || []).findIndex(img => img.id === imageItem.id);
+          router.push({
+            pathname: '/ImageDetailsScreen',
+            params: { index: correctIndex, images: JSON.stringify(images || []) },
+          });
+        }}
+        activeOpacity={0.85}
+        style={{ margin: 8 }}
+      >
+        <Image
+          source={{ uri: imageItem.url }}
+          style={{
+            width: displayWidth,
+            height: displayHeight,
+            borderRadius: 12,
+          }}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
+    );
+  };
 
   const searchForSuggestion = (label: string) => {
     setSearchText(label);
@@ -206,18 +237,6 @@ export default function SearchScreen() {
       SUGGESTIONS.filter(s => s.label.toLowerCase().includes(searchText.toLowerCase()))
     );
     setShowSuggestions(filteredSuggestions.length > 0);
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      searchRef.current = searchText;
-      setImages([]);
-      setHasMore(true);
-      setError('');
-      pageRef.current = 1;
-      fetchImages(true);
-    }, 600);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
   }, [searchText]);
 
   // Warn if using default keys
@@ -314,14 +333,8 @@ export default function SearchScreen() {
     paddingHorizontal: 8,
   },
   grid: {
-    padding: 16,
-  },
-  image: {
-    width: imageWidth,
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 16,
-    marginRight: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
   },
   modalOverlay: {
     flex: 1,
@@ -490,8 +503,8 @@ export default function SearchScreen() {
                 No results found
               </Text>
             ) : null}
-            <FlatList
-              data={images}
+            <MasonryList
+              data={images || []}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
               numColumns={2}

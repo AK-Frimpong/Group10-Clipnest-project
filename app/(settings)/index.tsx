@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { Modal, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useThemeContext } from '../theme/themecontext';
-import { logout } from './api/auth';
+import { useThemeContext } from '../../theme/themecontext';
+import { logout } from '../api/auth';
 
 export default function SettingsScreen() {
   const { isDarkMode } = useThemeContext();
@@ -89,7 +89,7 @@ export default function SettingsScreen() {
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: isDarkMode ? '##181D1C' : '#F3FAF8' }]}
+                style={[styles.modalButton, { backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }]}
                 onPress={handleLogout}
                 disabled={loading}
               >
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-});
+}); 

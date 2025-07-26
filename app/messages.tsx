@@ -15,6 +15,30 @@ const DUMMY_USERS = [
   { username: 'jermaine', name: 'Jermaine' },
 ];
 
+interface Group {
+  id: string;
+  name: string;
+  participants: string[];
+  admins: string[];
+  createdBy: string;
+  createdAt: number;
+}
+
+interface GroupMessage {
+  id: string;
+  text?: string;
+  imageUri?: string;
+  audioUri?: string;
+  sender: string;
+  senderName: string;
+  timestamp: number;
+  status: 'sent' | 'seen' | 'not sent';
+  replyTo?: string;
+  deletedFor?: string[];
+  edited?: boolean;
+  deletedForEveryone?: boolean;
+}
+
 function formatTimestamp(date: Date) {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -47,28 +71,34 @@ export default function MessagesScreen() {
   const { isDarkMode } = useThemeContext();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(DUMMY_USERS);
-  const [conversations, setConversations] = useState<any[]>([]); // { username, name, lastMessage, unreadCount }
+  const [conversations, setConversations] = useState<any[]>([]); // { username/groupId, name, lastMessage, unreadCount, isGroup }
   const router = useRouter();
 
   // Helper to get unread count key
   const getUnreadKey = (username: string) => `chat_unread_${user?.id || 'unknown'}_${username}`;
   // Helper to get chat messages key
   const getChatKey = (username: string) => `chat_messages_${user?.id || 'unknown'}_${username}`;
+  // Helper to get group messages key
+  const getGroupMessagesKey = (groupId: string) => `group_messages_${groupId}`;
 
   useFocusEffect(
     React.useCallback(() => {
       const loadConversations = async () => {
         const convos: any[] = [];
+        
         // Load hidden conversations
         const hiddenKey = `hidden_conversations_${user?.id || 'unknown'}`;
         const hiddenRaw = await AsyncStorage.getItem(hiddenKey);
         const hiddenList = hiddenRaw ? JSON.parse(hiddenRaw) : [];
+
+        // Load individual conversations
         for (const u of DUMMY_USERS) {
           const key = `chat_messages_${user?.id || 'unknown'}_${u.username}`;
           const stored = await AsyncStorage.getItem(key);
           const unreadKey = getUnreadKey(u.username);
           const unreadRaw = await AsyncStorage.getItem(unreadKey);
           const unreadCount = unreadRaw ? parseInt(unreadRaw, 10) : 0;
+          
           if (stored) {
             const msgs = JSON.parse(stored);
             if (Array.isArray(msgs) && msgs.length > 0) {
@@ -76,16 +106,65 @@ export default function MessagesScreen() {
               // Only show if not hidden (unless searching)
               if (searchText.trim() !== '' || !hiddenList.includes(u.username)) {
                 convos.push({
-                  username: u.username,
+                  id: u.username,
+                  name: u.username,
                   lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : (lastMsg.audioUri ? 'Voice message' : '')),
                   lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''),
                   lastTimestamp: lastMsg.timestamp,
                   unreadCount,
+                  isGroup: false,
                 });
               }
             }
           }
         }
+
+        // Load group conversations
+        try {
+          const groupsKey = `user_groups_${user?.id || 'unknown'}`;
+          const groupsData = await AsyncStorage.getItem(groupsKey);
+          if (groupsData) {
+            const groups: Group[] = JSON.parse(groupsData);
+            
+            for (const group of groups) {
+              const groupMessagesKey = getGroupMessagesKey(group.id);
+              const groupMessagesData = await AsyncStorage.getItem(groupMessagesKey);
+              
+              let lastMessage = '';
+              let lastSender = '';
+              let lastTimestamp = group.createdAt; // Use creation time as fallback
+              let lastIsImage = false;
+              
+              if (groupMessagesData) {
+                const groupMessages: GroupMessage[] = JSON.parse(groupMessagesData);
+                if (groupMessages.length > 0) {
+                  const lastMsg = groupMessages[groupMessages.length - 1];
+                  lastSender = lastMsg.senderName || 'Unknown';
+                  lastMessage = (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : (lastMsg.audioUri ? 'Voice message' : ''));
+                  lastTimestamp = lastMsg.timestamp;
+                  lastIsImage = !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === '');
+                }
+              }
+              
+              convos.push({
+                id: group.id,
+                name: group.name,
+                lastMessage: lastMessage || 'No messages yet',
+                lastSender: lastSender,
+                lastIsImage: lastIsImage,
+                lastTimestamp: lastTimestamp,
+                unreadCount: 0, // TODO: Implement group unread count
+                isGroup: true,
+                memberCount: group.participants.length,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading groups:', error);
+        }
+
+        // Sort conversations by last message timestamp (newest first)
+        convos.sort((a, b) => (a.lastTimestamp || 0) - (b.lastTimestamp || 0));
         setConversations(convos);
       };
       loadConversations();
@@ -109,9 +188,18 @@ export default function MessagesScreen() {
       : conversations;
 
   // When a chat is opened, reset unread count for that user
-  const handleOpenChat = async (username: string) => {
-    await AsyncStorage.setItem(getUnreadKey(username), '0');
-    router.push({ pathname: '/chat/chat', params: { username } });
+  const handleOpenChat = async (conversation: any) => {
+    if (conversation.isGroup) {
+      // Navigate to group chat
+      router.push({
+        pathname: '/chat/group-chat',
+        params: { groupId: conversation.id, groupName: conversation.name }
+      });
+    } else {
+      // Navigate to individual chat
+      await AsyncStorage.setItem(getUnreadKey(conversation.id), '0');
+      router.push({ pathname: '/chat/chat', params: { username: conversation.id } });
+    }
   };
 
   return (
@@ -123,19 +211,24 @@ export default function MessagesScreen() {
             <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#F3FAF8' : '#181D1C'} />
           </Pressable>
           <Text style={[styles.inboxHeader, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Inbox</Text>
-          <View style={{ width: 32 }} /> {/* Spacer to balance the row */}
+          <TouchableOpacity 
+            style={styles.createGroupButton} 
+            onPress={() => {
+              router.push('/chat/create-group');
+            }}
+            hitSlop={10}
+          >
+            <Ionicons name="people" size={24} color={isDarkMode ? '#F3FAF8' : '#181D1C'} />
+          </TouchableOpacity>
         </View>
         {/* Messages Section */}
         <View style={styles.sectionRow}>
           <Text style={[styles.sectionTitle, { color: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>Messages</Text>
         </View>
         {/* Search box always visible */}
-        <View style={styles.searchBoxRow}>
-          <View style={styles.iconCircleSmall}>
-            <Ionicons name="people-outline" size={22} color={isDarkMode ? '#F3FAF8' : '#181D1C'} />
-          </View>
+        <View style={[styles.searchBoxRow, { borderWidth: 1, borderColor: isDarkMode ? '#F3FAF8' : '#181D1C' }]}>
           <TextInput
-            style={[styles.input, { backgroundColor: isDarkMode ? '#232B2B' : '#E2F1ED', color: isDarkMode ? '#fff' : '#181D1C' }]}
+            style={[styles.input, { backgroundColor: 'transparent', color: isDarkMode ? '#fff' : '#181D1C' }]}
             placeholder="Find people to message"
             placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
             value={searchText}
@@ -146,15 +239,35 @@ export default function MessagesScreen() {
         {/* User list */}
         <FlatList
           data={usersToShow}
-          keyExtractor={item => item.username}
+          keyExtractor={item => item.id}
           renderItem={({ item }) => (
             <View style={styles.userRow}>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/UserProfileScreen', params: { username: item.username } })} hitSlop={10}>
-                <Ionicons name="person-circle-outline" size={28} color={isDarkMode ? '#4EE0C1' : '#181D1C'} />
+              <TouchableOpacity 
+                onPress={() => {
+                  if (item.isGroup) {
+                    // Don't navigate to profile for groups
+                    return;
+                  }
+                  router.push({ pathname: '/UserProfileScreen', params: { username: item.id } });
+                }} 
+                hitSlop={10}
+              >
+                <Ionicons 
+                  name={item.isGroup ? "people" : "person-circle-outline"} 
+                  size={28} 
+                  color={isDarkMode ? '#4EE0C1' : '#181D1C'} 
+                />
               </TouchableOpacity>
-              <TouchableOpacity style={{ marginLeft: 12, flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => handleOpenChat(item.username)} activeOpacity={0.8}>
+              <TouchableOpacity style={{ marginLeft: 12, flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => handleOpenChat(item)} activeOpacity={0.8}>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>{item.username}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ color: isDarkMode ? '#F3FAF8' : '#181D1C', fontWeight: 'bold' }}>{item.name}</Text>
+                    {item.isGroup && (
+                      <Text style={{ color: isDarkMode ? '#aaa' : '#666', fontSize: 12, marginLeft: 8 }}>
+                        {item.memberCount} members
+                      </Text>
+                    )}
+                  </View>
                   {item.lastMessage !== undefined && item.lastMessage !== '' && (
                     <Text
                       style={{
@@ -167,6 +280,7 @@ export default function MessagesScreen() {
                       }}
                       numberOfLines={1}
                     >
+                      {item.isGroup && item.lastSender && item.lastSender !== 'You' ? `${item.lastSender}: ` : ''}
                       {item.lastIsImage ? 'image' : item.lastMessage}
                     </Text>
                   )}
@@ -239,6 +353,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
+  createGroupButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sectionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,10 +392,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     fontSize: 15,
-    marginBottom: 0,
   },
   userRow: {
     flexDirection: 'row',
