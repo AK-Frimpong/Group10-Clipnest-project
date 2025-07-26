@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/package.json",
   "name": "pinterest-clone",
   "main": "expo-router/entry",
   "version": "1.0.0",

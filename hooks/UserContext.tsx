@@ -15,7 +15,11 @@ export type UserContextType = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // For development/testing, provide a default user
+  const [user, setUser] = useState<User | null>({
+    id: 'alvinn',
+    username: 'alvinn'
+  });
 
   const logout = () => setUser(null);
 

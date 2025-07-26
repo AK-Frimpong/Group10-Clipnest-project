@@ -77,7 +77,7 @@ export default function MessagesScreen() {
               if (searchText.trim() !== '' || !hiddenList.includes(u.username)) {
                 convos.push({
                   username: u.username,
-                  lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : ''),
+                  lastMessage: (lastMsg.text && lastMsg.text.trim() !== '') ? lastMsg.text : (lastMsg.imageUri ? 'image' : (lastMsg.audioUri ? 'Voice message' : '')),
                   lastIsImage: !!lastMsg.imageUri && (!lastMsg.text || lastMsg.text.trim() === ''),
                   lastTimestamp: lastMsg.timestamp,
                   unreadCount,

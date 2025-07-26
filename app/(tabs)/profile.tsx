@@ -10,7 +10,7 @@ import EditProfileModal from '../modals/EditProfileModal';
 export default function ProfileScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const router = useRouter();
-  const { user } = useUser();
+  const { user, setUser } = useUser(); // <-- get setUser
   
   const { isDarkMode } = useThemeContext();
   const { pins, collages } = useContext(PinBoardContext);
@@ -185,6 +185,12 @@ export default function ProfileScreen() {
           setUsername(newUsername);
           setBio(newBio);
           setAvatar(newAvatar);
+          // Update the global user context as well:
+          setUser({
+            ...user,
+            id: newName, // or newUsername if you want
+            username: newUsername,
+          });
           closeModal();
         }}
       />

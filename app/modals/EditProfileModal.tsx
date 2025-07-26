@@ -233,7 +233,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <Switch value={showPins} onValueChange={setShowPins} />
           </View>
 
-          <TouchableOpacity style={[styles.saveButton, { backgroundColor: '#4EE0C1' }]} onPress={handleSave}>
+          <TouchableOpacity style={[styles.saveButton, { backgroundColor: '#7BD4C8', borderRadius: 30 }]} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Done</Text>
           </TouchableOpacity>
         </View>
@@ -360,12 +360,12 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#E60023',
     marginTop: 20,
-    borderRadius: 8,
+    borderRadius: 30,
     paddingVertical: 10,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#181D1C',
     fontWeight: 'bold',
   },
   avatarEdit: {

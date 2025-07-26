@@ -81,22 +81,39 @@ export default function UserProfileScreen() {
           </View>
         </View>
         <View style={styles.actionRow}>
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <TouchableOpacity
-              style={[styles.followButton, { backgroundColor: '#27403B', alignSelf: 'center' }]}
-              onPress={() => {
-                if (isFollowing) {
-                  setIsFollowing(false);
-                  setFollowers(f => Math.max(0, f - 1));
-                } else {
-                  setIsFollowing(true);
-                  setFollowers(f => f + 1);
-                }
-              }}
-            >
-              <Text style={{ color: '#F3FAF8', fontWeight: 'bold', fontSize: 16 }}>{isFollowing ? 'Following' : 'Follow'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.messageButton, { backgroundColor: '#7BD4C8' }]}
+            onPress={() => {
+              try {
+                console.log('Navigating to chat with username:', username);
+                // Navigate to chat screen with the username
+                router.push({
+                  pathname: '/chat/chat',
+                  params: { username: username }
+                });
+              } catch (error) {
+                console.error('Navigation error:', error);
+                // Fallback: try a simpler navigation
+                router.push('/chat/chat');
+              }
+            }}
+          >
+            <Text style={{ color: '#181D1C', fontWeight: 'bold', fontSize: 16 }}>Message</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.followButton, { backgroundColor: '#27403B' }]}
+            onPress={() => {
+              if (isFollowing) {
+                setIsFollowing(false);
+                setFollowers(f => Math.max(0, f - 1));
+              } else {
+                setIsFollowing(true);
+                setFollowers(f => f + 1);
+              }
+            }}
+          >
+            <Text style={{ color: '#F3FAF8', fontWeight: 'bold', fontSize: 16 }}>{isFollowing ? 'Following' : 'Follow'}</Text>
+          </TouchableOpacity>
         </View>
         {/* Tabs */}
         <View style={styles.tabRow}>
@@ -168,6 +185,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  messageButton: {
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 2,
   },
   followButton: {
     borderRadius: 20,

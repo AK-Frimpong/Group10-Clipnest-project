@@ -9,7 +9,7 @@ import { ThemeProvider } from '../theme/themecontext';
 import { PinBoardProvider } from './context/PinBoardContext';
 
 export default function RootLayout() {
-  const [isAuthenticated] = useState(false);
+  const [isAuthenticated] = useState(true); // Set to true for development
 
   // Push notification setup
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
@@ -96,8 +96,12 @@ export default function RootLayout() {
       console.log('Notification response:', response);
     });
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
-      Notifications.removeNotificationSubscription(responseListener.current);
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
     };
   }, []);
 
@@ -119,6 +123,8 @@ export default function RootLayout() {
                 <Stack.Screen name="auth" />
               )}
               <Stack.Screen name="settings" />
+              <Stack.Screen name="UserProfileScreen" />
+              <Stack.Screen name="ImageDetailsScreen" />
               <Stack.Screen
                 name="modals/PostCreationModal"
                 options={{

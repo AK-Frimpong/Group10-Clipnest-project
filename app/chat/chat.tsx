@@ -2,23 +2,24 @@ import { Ionicons } from '@expo/vector-icons';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MasonryList from '@react-native-seoul/masonry-list';
+import { Audio } from 'expo-av';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    TextInput as RNTextInput,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  TextInput as RNTextInput,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { useUser } from '../../hooks/UserContext';
@@ -33,6 +34,7 @@ interface Message {
   id: string;
   text?: string;
   imageUri?: string;
+  audioUri?: string; // Add audio support
   sender: 'me' | 'them';
   timestamp: number;
   status: 'sent' | 'seen' | 'not sent';
@@ -47,6 +49,20 @@ export default function ChatScreen() {
   const { username } = useLocalSearchParams();
   const safeUsername = Array.isArray(username) ? username[0] : username;
   const { backgroundColor, textColor, cardColor, isDarkMode } = useThemeContext();
+  
+  // Handle case where user is not logged in
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }}>
+        <Text style={{ color: isDarkMode ? '#F3FAF8' : '#222', fontSize: 18, textAlign: 'center', padding: 24 }}>
+          Please log in to start chatting.
+        </Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20, padding: 12, backgroundColor: '#27403B', borderRadius: 8 }}>
+          <Text style={{ color: '#F3FAF8', fontSize: 16 }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const flatListRef = useRef<FlatList>(null);
@@ -65,6 +81,203 @@ export default function ChatScreen() {
   const [pinLoading, setPinLoading] = useState(false);
   const [pinSearch, setPinSearch] = useState('');
   const [pinTab, setPinTab] = useState<'all' | 'yours'>('all');
+  const [isRecording, setIsRecording] = useState(false);
+  
+  // Audio recording and playback state
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [audioDurations, setAudioDurations] = useState<{ [key: string]: number }>({});
+  const [playbackPositions, setPlaybackPositions] = useState<{ [key: string]: number }>({});
+  const recordingTimerRef = useRef<any>(null);
+
+  // Request audio permissions
+  useEffect(() => {
+    (async () => {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Audio permission not granted');
+      }
+    })();
+  }, []);
+
+  // Start recording
+  const startRecording = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+      });
+      
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      
+      setRecording(recording);
+      setIsRecording(true);
+      setRecordingDuration(0);
+      
+      // Start timer for recording duration
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  };
+
+  // Cancel recording
+  const cancelRecording = async () => {
+    if (!recording) return;
+    
+    try {
+      await recording.stopAndUnloadAsync();
+      setRecording(null);
+      setIsRecording(false);
+      
+      // Clear timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      
+      setRecordingDuration(0);
+      
+    } catch (err) {
+      console.error('Failed to cancel recording', err);
+    }
+  };
+
+  // Stop recording
+  const stopRecording = async () => {
+    if (!recording) return;
+    
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      setIsRecording(false);
+      
+      // Clear timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      
+      if (uri && recordingDuration > 1) { // Only send if recording is longer than 1 second
+        // Send the voice note
+        const newMsg: Message = {
+          id: Date.now().toString(),
+          audioUri: uri,
+          sender: 'me',
+          timestamp: Date.now(),
+          status: blocked ? 'not sent' : 'sent',
+        };
+        
+        const newMessages = [...messages, newMsg];
+        setMessages(newMessages);
+        saveMessages(newMessages);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      }
+      
+      setRecordingDuration(0);
+      
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+    }
+  };
+
+  // Play audio
+  const playAudio = async (audioUri: string, messageId: string) => {
+    try {
+      // Stop currently playing audio
+      if (sound) {
+        await sound.unloadAsync();
+      }
+      // Set audio mode to use main speaker
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        playThroughEarpieceAndroid: false,
+      });
+      
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: true }
+      );
+      
+      setSound(newSound);
+      setCurrentlyPlaying(messageId);
+      
+      // Get audio duration if not already stored
+      if (!audioDurations[messageId]) {
+        const status = await newSound.getStatusAsync();
+        if (status.isLoaded) {
+          setAudioDurations(prev => ({
+            ...prev,
+            [messageId]: status.durationMillis || 0
+          }));
+        }
+      }
+      
+      // Listen for playback status
+      newSound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.isLoaded) {
+          // Update playback position
+          setPlaybackPositions(prev => ({
+            ...prev,
+            [messageId]: status.positionMillis || 0
+          }));
+          
+          if (status.didJustFinish) {
+            setCurrentlyPlaying(null);
+            setPlaybackPositions(prev => ({
+              ...prev,
+              [messageId]: 0
+            }));
+          }
+        }
+      });
+      
+    } catch (err) {
+      console.error('Failed to play audio', err);
+    }
+  };
+
+  // Stop audio
+  const stopAudio = async () => {
+    if (sound) {
+      await sound.unloadAsync();
+      setSound(null);
+      setCurrentlyPlaying(null);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+      if (recording) {
+        recording.stopAndUnloadAsync();
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Format recording duration
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Load messages and blocked users from AsyncStorage on mount and when screen is focused
   useFocusEffect(
@@ -142,7 +355,7 @@ export default function ChatScreen() {
       if (forEveryone) {
         updated = msgs.map(m =>
           m.id === selectedMsg.id
-            ? { ...m, text: 'This message was deleted.', deletedForEveryone: true, edited: false }
+            ? { ...m, text: 'This message was deleted.', deletedForEveryone: true, edited: false, audioUri: undefined, imageUri: undefined }
             : m
         );
       } else {
@@ -364,7 +577,7 @@ export default function ChatScreen() {
                         if (!repliedMsg) return null;
                         return (
                           <Text style={{ color: '#aaa', fontSize: 13, fontStyle: 'italic', marginBottom: 2, textAlign: item.sender === 'me' ? 'right' : 'left' }} numberOfLines={2}>
-                            {repliedMsg.imageUri ? 'image' : repliedMsg.text || ''}
+                            {repliedMsg.imageUri ? 'image' : repliedMsg.audioUri ? 'voice message' : repliedMsg.text || ''}
                           </Text>
                         );
                       })()}
@@ -382,13 +595,59 @@ export default function ChatScreen() {
                             <Image source={{ uri: item.imageUri }} style={{ width: 180, height: 180, borderRadius: 12 }} resizeMode="cover" />
                           </TouchableOpacity>
                         ) : null}
+                        {item.audioUri && !item.deletedForEveryone ? (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 8, width: 220 }}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (currentlyPlaying === item.id) {
+                                  stopAudio();
+                                } else {
+                                  playAudio(item.audioUri!, item.id);
+                                }
+                              }}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 20,
+                                backgroundColor: isDarkMode ? '#333' : '#fff',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginRight: 12,
+                              }}
+                            >
+                              <Ionicons
+                                name={currentlyPlaying === item.id ? 'pause' : 'play'}
+                                size={20}
+                                color={isDarkMode ? '#F3FAF8' : '#181D1C'}
+                              />
+                            </TouchableOpacity>
+                            <View style={{ flex: 1 }}>
+                              <View style={{ height: 4, backgroundColor: isDarkMode ? '#444' : '#ddd', borderRadius: 2, marginBottom: 4 }}>
+                                <View 
+                                  style={{ 
+                                    width: audioDurations[item.id] ? `${(playbackPositions[item.id] || 0) / audioDurations[item.id] * 100}%` : '0%', 
+                                    height: '100%', 
+                                    backgroundColor: '#7BD4C8', 
+                                    borderRadius: 2 
+                                  }} 
+                                />
+                              </View>
+                              <Text style={{ color: '#181D1C', fontSize: 12 }}>
+                                Voice message
+                              </Text>
+                            </View>
+                            <Text style={{ color: '#181D1C', fontSize: 12, marginLeft: 8 }}>
+                              {audioDurations[item.id] ? formatDuration(Math.floor(audioDurations[item.id] / 1000)) : '0:00'}
+                            </Text>
+                          </View>
+                        ) : null}
                         {item.text && (
                           <Text
                             style={[
                               styles.msgText,
                               {
                                 fontStyle: item.deletedForEveryone ? 'italic' : 'normal',
-                                color: item.deletedForEveryone ? '#888' : '#181D1C',
+                                color: item.deletedForEveryone ? '#181D1C' : '#181D1C',
                               },
                             ]}
                           >
@@ -447,7 +706,7 @@ export default function ChatScreen() {
           {replyTo && (
             <View style={{ padding: 8, backgroundColor: isDarkMode ? '#232B2B' : '#E2F1ED', borderRadius: 8, marginBottom: 4, flexDirection: 'row', alignItems: 'flex-start' }}>
               <Text style={{ color: '#aaa', fontSize: 13, fontStyle: 'italic', flex: 1 }} numberOfLines={2}>
-                {replyTo.imageUri ? 'image' : replyTo.text}
+                {replyTo.imageUri ? 'image' : replyTo.audioUri ? 'voice message' : replyTo.text}
               </Text>
               <TouchableOpacity onPress={() => setReplyTo(null)} style={{ marginLeft: 8, marginTop: 2 }}>
                 <Ionicons name="close" size={18} color="#888" />
@@ -455,34 +714,65 @@ export default function ChatScreen() {
             </View>
           )}
         <View style={[styles.inputRow, { backgroundColor }]}>
-            {/* Plus (+) button for pins */}
+          {/* Microphone button */}
+          <TouchableOpacity
+            style={{ marginRight: 8 }}
+            onPress={async () => {
+              if (isRecording) {
+                await stopRecording();
+              } else {
+                await startRecording();
+              }
+            }}
+          >
+            <Ionicons name={isRecording ? 'mic' : 'mic-outline'} size={28} color={isRecording ? '#E74C3C' : textColor} />
+          </TouchableOpacity>
+          
+          {/* Cancel recording button */}
+          {isRecording && (
+            <TouchableOpacity
+              style={{ marginRight: 8 }}
+              onPress={cancelRecording}
+            >
+              <Ionicons name="close-circle" size={28} color="#E74C3C" />
+            </TouchableOpacity>
+          )}
+          
+          {/* Plus (+) button for pins */}
+          {!isRecording && (
             <TouchableOpacity style={{ marginRight: 8 }} onPress={handlePlusPress}>
               <Ionicons name="add" size={28} color={textColor} />
             </TouchableOpacity>
+          )}
+          
           <TextInput
             style={[
               styles.input,
-                { backgroundColor, color: textColor, borderColor: isDarkMode ? '#333' : '#ccc', minHeight: 40, maxHeight: 120, height: inputHeight },
+              { backgroundColor, color: textColor, borderColor: isDarkMode ? '#333' : '#ccc', minHeight: 40, maxHeight: 120, height: inputHeight },
+              isRecording && { color: '#aaa', fontStyle: 'italic' },
             ]}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Type a message..."
+            value={isRecording ? `Recording... ${formatDuration(recordingDuration)}` : input}
+            onChangeText={text => {
+              if (!isRecording) setInput(text);
+            }}
+            placeholder={isRecording ? 'Recording...' : "Type a message..."}
             placeholderTextColor={isDarkMode ? '#aaa' : '#888'}
-              onSubmitEditing={blocked ? undefined : (editMode ? handleEdit : handleSend)}
+            onSubmitEditing={blocked ? undefined : (editMode ? handleEdit : handleSend)}
             returnKeyType="send"
-              editable={!blocked && !editMode}
-              multiline
-              onContentSizeChange={e => {
-                const h = Math.min(120, Math.max(40, e.nativeEvent.contentSize.height));
-                setInputHeight(h);
-              }}
-            />
-            <TouchableOpacity
-              style={[styles.sendBtn, { backgroundColor: '#27403B', opacity: blocked ? 0.5 : 1 }]}
-              onPress={blocked ? undefined : (editMode ? handleEdit : handleSend)}
-              disabled={blocked}
-            >
-              <Text style={styles.sendBtnText}>{editMode ? 'Save' : 'Send'}</Text>
+            editable={!blocked && !editMode}
+            multiline
+            onContentSizeChange={e => {
+              const h = Math.min(120, Math.max(40, e.nativeEvent.contentSize.height));
+              setInputHeight(h);
+            }}
+          />
+          
+          <TouchableOpacity
+            style={[styles.sendBtn, { backgroundColor: '#27403B', opacity: blocked ? 0.5 : 1 }]}
+            onPress={blocked ? undefined : (editMode ? handleEdit : handleSend)}
+            disabled={blocked}
+          >
+            <Text style={styles.sendBtnText}>{editMode ? 'Save' : 'Send'}</Text>
           </TouchableOpacity>
         </View>
           {/* Action Sheet for long-press */}
@@ -504,7 +794,7 @@ export default function ChatScreen() {
                   <Text style={{ color: textColor, fontWeight: 'bold' }}>Reply</Text>
               </TouchableOpacity>
                 {/* Edit (if applicable) */}
-                {selectedMsg && canEdit(selectedMsg) && selectedMsg.sender === 'me' && (
+                {selectedMsg && canEdit(selectedMsg) && selectedMsg.sender === 'me' && selectedMsg.text && (
                   <TouchableOpacity onPress={() => { setEditMode(true); setActionSheetVisible(false); }} style={{ padding: 16 }}>
                     <Text style={{ color: textColor, fontWeight: 'bold' }}>Edit</Text>
               </TouchableOpacity>
