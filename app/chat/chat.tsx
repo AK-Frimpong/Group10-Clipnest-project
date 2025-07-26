@@ -5,20 +5,20 @@ import MasonryList from '@react-native-seoul/masonry-list';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  TextInput as RNTextInput,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    ActivityIndicator,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    TextInput as RNTextInput,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { useUser } from '../../hooks/UserContext';
@@ -88,7 +88,7 @@ export default function ChatScreen() {
         } catch {
           setBlocked(false);
         }
-      };
+    };
     loadMessages();
       loadBlocked();
     }, [storageKey, safeUsername, user?.id])
@@ -422,7 +422,7 @@ export default function ChatScreen() {
           />
           {blocked && (
             <Text style={{ color: '#FF6B6B', textAlign: 'center', marginBottom: 8 }}>
-              You can’t send messages to this user.
+              You can't send messages to this user.
             </Text>
           )}
           {/* Edit mode UI */}
