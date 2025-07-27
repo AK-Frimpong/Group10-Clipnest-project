@@ -98,7 +98,7 @@ export default function NotificationsScreen() {
         <View style={styles.emptyState}>
           <Ionicons name="notifications-outline" size={72} color={isDarkMode ? '#4EE0C1' : '#181D1C'} style={{ marginBottom: 24 }} />
           <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#181D1C' }]}>No notifications yet</Text>
-          <Text style={[styles.subtitle, { color: isDarkMode ? '#aaa' : '#555' }]}>You’ll see notifications about your activity here.</Text>
+          <Text style={[styles.subtitle, { color: isDarkMode ? '#aaa' : '#555' }]}>You'll see notifications about your activity here.</Text>
         </View>
       ) : (
         <ScrollView style={styles.notificationsList} contentContainerStyle={{ paddingBottom: 32, alignItems: 'center' }}>

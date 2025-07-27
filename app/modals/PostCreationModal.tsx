@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Modal,
     Pressable,
@@ -10,6 +10,8 @@ import {
     View,
 } from 'react-native';
 import { useThemeContext } from '../../theme/themecontext';
+import BoardModal from './BoardModal';
+import CollageModal from './CollageModal';
 
 interface Props {
   visible: boolean;
@@ -23,10 +25,20 @@ export default function PostCreationModal({ visible, onClose }: Props) {
   const iconColor = isDarkMode ? '#fff' : '#181D1C';
   const textColor = isDarkMode ? '#fff' : '#181D1C';
   const router = useRouter();
+  const [showCollageModal, setShowCollageModal] = useState(false);
+  const [showBoardModal, setShowBoardModal] = useState(false);
 
   const handleClip = async () => {
     onClose();
     router.push('/ClipMediaPickerScreen');
+  };
+
+  const handleCollage = () => {
+    setShowCollageModal(true);
+  };
+
+  const handleBoard = () => {
+    setShowBoardModal(true);
   };
 
   return (
@@ -51,11 +63,11 @@ export default function PostCreationModal({ visible, onClose }: Props) {
               <MaterialCommunityIcons name="pin" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Clip</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]} onPress={handleCollage}>
               <MaterialCommunityIcons name="collage" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Collage</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]}>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: buttonBg }]} onPress={handleBoard}>
               <MaterialIcons name="dashboard" size={36} color={iconColor} />
               <Text style={[styles.actionLabel, { color: textColor }]}>Board</Text>
             </TouchableOpacity>
@@ -63,6 +75,14 @@ export default function PostCreationModal({ visible, onClose }: Props) {
           <View style={[styles.handleBar, { backgroundColor: isDarkMode ? '#444' : '#ccc' }]} />
         </View>
       </View>
+      <CollageModal 
+        visible={showCollageModal} 
+        onClose={() => setShowCollageModal(false)} 
+      />
+      <BoardModal 
+        visible={showBoardModal} 
+        onClose={() => setShowBoardModal(false)} 
+      />
     </Modal>
   );
 }

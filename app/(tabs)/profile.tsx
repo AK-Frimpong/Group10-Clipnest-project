@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useContext, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useContext, useEffect, useState } from 'react';
 import { Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../hooks/UserContext';
 import { useThemeContext } from '../../theme/themecontext'; //  FIXED PATH
@@ -10,11 +10,23 @@ import EditProfileModal from '../modals/EditProfileModal';
 export default function ProfileScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+<<<<<<< Updated upstream
   const { user, setUser } = useUser(); // <-- get setUser
+=======
+  const params = useLocalSearchParams();
+  const { user } = useUser();
+>>>>>>> Stashed changes
   
   const { isDarkMode } = useThemeContext();
-  const { pins, collages } = useContext(PinBoardContext);
+  const { pins, collages, boards } = useContext(PinBoardContext);
   const [activeTab, setActiveTab] = useState<'clips' | 'boards' | 'collages' | 'saved' | 'created'>('clips');
+
+  // Set active tab based on navigation params
+  useEffect(() => {
+    if (params.activeTab && typeof params.activeTab === 'string') {
+      setActiveTab(params.activeTab as any);
+    }
+  }, [params.activeTab]);
 
   const [name, setName] = useState('Alvin');
   const [username, setUsername] = useState('alvinnn');
@@ -137,8 +149,62 @@ export default function ProfileScreen() {
         </View>
       )}
       {activeTab === 'boards' && (
-        <View style={{ marginTop: 24, minHeight: 200, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: isDarkMode ? '#888' : '#aaa' }}>No boards yet.</Text>
+        <View style={{ marginTop: 24, minHeight: 200 }}>
+          {boards.length === 0 ? (
+            <Text style={{ color: isDarkMode ? '#888' : '#aaa', textAlign: 'center', marginTop: 32 }}>No boards yet.</Text>
+          ) : (
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+              {boards.map((board) => (
+                <TouchableOpacity
+                  key={board.id}
+                  style={[
+                    styles.boardCard,
+                    { 
+                      backgroundColor: isDarkMode ? '#252A29' : '#FFFFFF',
+                      borderColor: isDarkMode ? '#333' : '#E0E0E0'
+                    }
+                  ]}
+                >
+                  <View style={styles.boardHeader}>
+                    <View style={styles.boardInfo}>
+                      <Text style={[styles.boardName, { color: isDarkMode ? '#fff' : '#000' }]}>
+                        {board.name}
+                      </Text>
+                      <Text style={[styles.boardDescription, { color: isDarkMode ? '#aaa' : '#666' }]}>
+                        {board.description || 'No description'}
+                      </Text>
+                      <Text style={[styles.boardStats, { color: isDarkMode ? '#888' : '#999' }]}>
+                        {board.items.length} items • {board.isPrivate ? 'Private' : 'Public'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={isDarkMode ? '#fff' : '#000'} />
+                  </View>
+                  {board.items.length > 0 && (
+                    <View style={styles.boardItems}>
+                      {board.items.slice(0, 3).map((item, index) => (
+                        <Image
+                          key={item.id}
+                          source={{ uri: item.url }}
+                          style={[
+                            styles.boardItemImage,
+                            { marginRight: index < 2 ? 8 : 0 }
+                          ]}
+                          resizeMode="cover"
+                        />
+                      ))}
+                      {board.items.length > 3 && (
+                        <View style={[styles.moreItems, { backgroundColor: isDarkMode ? '#333' : '#f0f0f0' }]}>
+                          <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: 12 }}>
+                            +{board.items.length - 3}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       )}
       {activeTab === 'collages' && (
@@ -273,6 +339,51 @@ const styles = StyleSheet.create({
   },
   pinsGridPlaceholder: {
     marginTop: 40,
+    alignItems: 'center',
+  },
+  boardCard: {
+    borderRadius: 12,
+    marginBottom: 15,
+    padding: 15,
+    borderWidth: 1,
+  },
+  boardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  boardInfo: {
+    flex: 1,
+  },
+  boardName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  boardDescription: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  boardStats: {
+    fontSize: 13,
+  },
+  boardItems: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  boardItemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  moreItems: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
     alignItems: 'center',
   },
 });

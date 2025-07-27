@@ -42,6 +42,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="explore"
+          options={{
+            href: null, // This hides the tab from the tab bar
+          }}
+        />
+        <Tabs.Screen
           name="post"
           options={{
             tabBarLabel: '',

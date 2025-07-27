@@ -5,13 +5,20 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import {
     ActivityIndicator,
     Dimensions,
+<<<<<<< Updated upstream
+=======
+    FlatList,
+>>>>>>> Stashed changes
     Image,
     Modal,
     Platform,
     Pressable,
     RefreshControl,
     SafeAreaView,
+<<<<<<< Updated upstream
     ScrollView,
+=======
+>>>>>>> Stashed changes
     Share,
     StatusBar,
     StyleSheet,
@@ -361,6 +368,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
   },
+<<<<<<< Updated upstream
   header: {
     position: 'absolute',
     top: 0,
@@ -385,5 +393,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#181D1C',
     marginTop: 4,
     marginLeft: 8,
+=======
+  column: {
+    flex: 1,
+    padding: 8,
+  },
+  leftColumn: {
+    marginRight: 8,
+  },
+  itemContainer: {
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  image: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+>>>>>>> Stashed changes
   },
 });

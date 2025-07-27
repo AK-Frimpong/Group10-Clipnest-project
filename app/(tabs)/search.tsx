@@ -1,6 +1,6 @@
 import MasonryList from '@react-native-seoul/masonry-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Dimensions,
@@ -63,17 +63,24 @@ export default function SearchScreen() {
   const pageRef = useRef(1);
   const searchRef = useRef('');
   const [selectedPin, setSelectedPin] = useState<ImageItem | null>(null);
-  const [debugInfo, setDebugInfo] = useState('');
-  const [filteredSuggestions, setFilteredSuggestions] = useState<typeof SUGGESTIONS>([]);
   const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
   const router = useRouter();
   const params = useLocalSearchParams();
 
+  // Calculate image width for masonry layout
+  const screenWidth = Dimensions.get('window').width;
+  const imageWidth = (screenWidth - 48) / 2;
+
   // Add debounce timer ref
   const debounceTimer = useRef<any>(null);
 
-  const fetchImages = async (reset = false) => {
-    setDebugInfo('');
+  // Memoize filtered suggestions to prevent unnecessary re-renders
+  const filteredSuggestions = useMemo(() => {
+    if (!searchText.trim()) return SUGGESTIONS;
+    return SUGGESTIONS.filter(s => s.label.toLowerCase().includes(searchText.toLowerCase()));
+  }, [searchText]);
+
+  const fetchImages = useCallback(async (reset = false) => {
     const query = searchRef.current;
     if (!query.trim()) return;
     setLoading(true);
@@ -85,13 +92,9 @@ export default function SearchScreen() {
         `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&page=${page}&per_page=${PER_PAGE}&client_id=${UNSPLASH_ACCESS_KEY}`
       ).then(async res => {
         if (!res.ok) {
-          const txt = await res.text();
-          setDebugInfo(prev => prev + `\nUnsplash error: ${txt}`);
-          throw new Error('Unsplash: ' + txt);
+          throw new Error('Unsplash: ' + await res.text());
         }
-        const json = await res.json();
-        setDebugInfo(prev => prev + `\nUnsplash success: ${JSON.stringify(json).slice(0, 300)}`);
-        return json;
+        return await res.json();
       });
       // Pexels fetch
       const pexelsPromise = fetch(
@@ -99,13 +102,9 @@ export default function SearchScreen() {
         { headers: { Authorization: PEXELS_API_KEY } }
       ).then(async res => {
         if (!res.ok) {
-          const txt = await res.text();
-          setDebugInfo(prev => prev + `\nPexels error: ${txt}`);
-          throw new Error('Pexels: ' + txt);
+          throw new Error('Pexels: ' + await res.text());
         }
-        const json = await res.json();
-        setDebugInfo(prev => prev + `\nPexels success: ${JSON.stringify(json).slice(0, 300)}`);
-        return json;
+        return await res.json();
       });
       // Wait for both, but don't fail if one fails
       const results = await Promise.allSettled([unsplashPromise, pexelsPromise]);
@@ -129,8 +128,13 @@ export default function SearchScreen() {
           height: img.height,
         }));
       }
+<<<<<<< Updated upstream
       const merged = reset ? [...unsplashImages, ...pexelsImages] : [...images, ...unsplashImages, ...pexelsImages];
       setImages(merged);
+=======
+      const merged = [...unsplashImages, ...pexelsImages];
+      setImages(prev => reset ? merged : [...prev, ...merged]);
+>>>>>>> Stashed changes
       pageRef.current = page + 1;
       setHasMore(unsplashImages.length + pexelsImages.length > 0);
       if (merged.length === 0) {
@@ -141,13 +145,12 @@ export default function SearchScreen() {
       }
     } catch (e: any) {
       setError(e.message || 'Something went wrong');
-      setDebugInfo(prev => prev + `\nImage fetch error: ${e.message}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const onSearch = () => {
+  const onSearch = useCallback(() => {
     Keyboard.dismiss();
     setImages([]);
     setHasMore(true);
@@ -156,14 +159,15 @@ export default function SearchScreen() {
     searchRef.current = searchText;
     setShowSuggestions(false);
     fetchImages(true);
-  };
+  }, [searchText, fetchImages]);
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (!loading && hasMore && images.length > 0) {
       fetchImages();
     }
-  };
+  }, [loading, hasMore, images.length, fetchImages]);
 
+<<<<<<< Updated upstream
   const renderItem = ({ item, i }: { item: unknown, i: number }) => {
     const imageItem = item as ImageItem;
     const screenWidth = Dimensions.get('window').width;
@@ -197,8 +201,39 @@ export default function SearchScreen() {
       </TouchableOpacity>
     );
   };
+=======
+  const renderItem = useCallback(({ item, index }: { item: ImageItem, index: number }) => {
+    // Generate random height for masonry effect (same as homepage)
+    const imageHeight = Math.floor(Math.random() * 100) + 200; // Random height between 200-300
+    
+    return (
+      <TouchableOpacity
+        onPress={() => router.push({
+          pathname: '/ImageDetailsScreen',
+          params: { index, images: JSON.stringify(images) },
+        })}
+        activeOpacity={0.85}
+        style={[
+          styles.imageContainer,
+          { 
+            width: imageWidth,
+            height: imageHeight,
+            marginBottom: 16,
+            marginRight: index % 2 === 0 ? 16 : 0,
+          }
+        ]}
+      >
+        <Image
+          source={{ uri: item.url }}
+          style={[styles.image, { width: imageWidth, height: imageHeight }]}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+    );
+  }, [images, router, imageWidth]);
+>>>>>>> Stashed changes
 
-  const searchForSuggestion = (label: string) => {
+  const searchForSuggestion = useCallback((label: string) => {
     setSearchText(label);
     setShowSuggestions(false);
     searchRef.current = label;
@@ -208,9 +243,9 @@ export default function SearchScreen() {
     pageRef.current = 1;
     fetchImages(true);
     Keyboard.dismiss();
-  };
+  }, [fetchImages]);
 
-  const renderSuggestionTile = ({ item }: { item: typeof SUGGESTIONS[0] }) => (
+  const renderSuggestionTile = useCallback(({ item }: { item: typeof SUGGESTIONS[0] }) => (
     <TouchableOpacity
       style={styles.suggestionTile}
       onPress={() => searchForSuggestion(item.label)}
@@ -220,24 +255,48 @@ export default function SearchScreen() {
       <View style={styles.suggestionOverlay} />
       <Text style={styles.suggestionLabel}>{item.label}</Text>
     </TouchableOpacity>
-  );
+  ), [searchForSuggestion]);
 
-  // Only fetch images on onSearch or when a suggestion is tapped
+  // Optimized useEffect to prevent unnecessary re-renders
   useEffect(() => {
     if (searchText.trim() === '') {
       setShowSuggestions(true);
       setImages([]);
       setError('');
       setHasMore(true);
-      setFilteredSuggestions(SUGGESTIONS);
       return;
     }
+<<<<<<< Updated upstream
     // Filter suggestions as user types
     setFilteredSuggestions(
       SUGGESTIONS.filter(s => s.label.toLowerCase().includes(searchText.toLowerCase()))
     );
     setShowSuggestions(filteredSuggestions.length > 0);
   }, [searchText]);
+=======
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Set new timer
+    debounceTimer.current = setTimeout(() => {
+      searchRef.current = searchText;
+      setImages([]);
+      setHasMore(true);
+      setError('');
+      pageRef.current = 1;
+      fetchImages(true);
+    }, 600);
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [searchText, fetchImages]);
+>>>>>>> Stashed changes
 
   // Warn if using default keys
   useEffect(() => {
@@ -263,11 +322,7 @@ export default function SearchScreen() {
       fetchImages(true);
       Keyboard.dismiss();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.interest]);
-
-  const screenWidth = Dimensions.get('window').width;
-  const imageWidth = (screenWidth - 48) / 2;
+  }, [params.interest, fetchImages]);
 
   const styles = StyleSheet.create({
   searchBarRow: {
@@ -333,8 +388,35 @@ export default function SearchScreen() {
     paddingHorizontal: 8,
   },
   grid: {
+<<<<<<< Updated upstream
     paddingVertical: 16,
     paddingHorizontal: 12,
+=======
+    padding: 16,
+  },
+  imageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  image: {
+    borderRadius: 12,
+>>>>>>> Stashed changes
   },
   modalOverlay: {
     flex: 1,
@@ -384,6 +466,10 @@ export default function SearchScreen() {
   },
 });
 
+  // Memoize key extractors for better performance
+  const keyExtractor = useCallback((item: ImageItem) => item.id, []);
+  const suggestionKeyExtractor = useCallback((item: typeof SUGGESTIONS[0]) => item.label, []);
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={{ flex: 1, backgroundColor: isDarkMode ? '#181D1C' : '#F3FAF8' }}>
@@ -405,10 +491,7 @@ export default function SearchScreen() {
                 },
               ]}
               value={searchText}
-              onChangeText={(text) => {
-                setSearchText(text);
-                setShowSuggestions(true);
-              }}
+              onChangeText={setSearchText}
               onFocus={() => {
                 setSearchFocused(true);
                 setShowSuggestions(true);
@@ -453,17 +536,7 @@ export default function SearchScreen() {
                     borderBottomWidth: 1,
                     borderColor: isDarkMode ? '#333' : '#eee',
                   }}
-                  onPress={() => {
-                    setSearchText(s.label);
-                    setShowSuggestions(false);
-                    searchRef.current = s.label;
-                    setImages([]);
-                    setHasMore(true);
-                    setError('');
-                    pageRef.current = 1;
-                    fetchImages(true);
-                    Keyboard.dismiss();
-                  }}
+                  onPress={() => searchForSuggestion(s.label)}
                 >
                   <Text style={{ color: isDarkMode ? '#4EE0C1' : '#181D1C', fontWeight: 'bold', fontSize: 16 }}>{s.label}</Text>
                 </TouchableOpacity>
@@ -476,44 +549,61 @@ export default function SearchScreen() {
             <Text style={[styles.sectionTitle, { color: isDarkMode ? '#fff' : '#181D1C', marginLeft: 16, marginTop: 16 }]}>Ideas for you</Text>
             <FlatList
               data={SUGGESTIONS}
-              keyExtractor={(item) => item.label}
+              keyExtractor={suggestionKeyExtractor}
               renderItem={renderSuggestionTile}
               numColumns={2}
               contentContainerStyle={styles.suggestionGrid}
               showsVerticalScrollIndicator={false}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={8}
+              windowSize={8}
+              initialNumToRender={6}
+              updateCellsBatchingPeriod={50}
+              disableVirtualization={false}
             />
           </>
         ) : (
           <>
-            {images.length > 0 && (
-              <Text style={{ color: 'green', textAlign: 'center', marginTop: 8 }}>
-                Showing {images.length} images
-              </Text>
-            )}
             {error ? (
               <Text style={{ color: 'red', textAlign: 'center', marginTop: 16 }}>{error}</Text>
-            ) : null}
-            {debugInfo && images.length === 0 ? (
-              <Text style={{ color: 'orange', fontSize: 12, margin: 8, padding: 4, backgroundColor: '#222', borderRadius: 6 }} selectable>
-                {debugInfo}
-              </Text>
             ) : null}
             {images.length === 0 && !loading ? (
               <Text style={{ color: isDarkMode ? '#fff' : '#181D1C', textAlign: 'center', marginTop: 32, fontSize: 16 }}>
                 No results found
               </Text>
             ) : null}
+<<<<<<< Updated upstream
             <MasonryList
               data={images || []}
               keyExtractor={(item) => item.id}
+=======
+            <FlatList
+              data={images}
+              keyExtractor={keyExtractor}
+>>>>>>> Stashed changes
               renderItem={renderItem}
               numColumns={2}
               contentContainerStyle={styles.grid}
               style={{ flex: 1 }}
               onEndReached={loadMore}
-              onEndReachedThreshold={0.5}
+              onEndReachedThreshold={0.3}
               ListFooterComponent={loading ? <ActivityIndicator style={{ margin: 16 }} /> : null}
               showsVerticalScrollIndicator={false}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={8}
+              windowSize={8}
+              initialNumToRender={6}
+              updateCellsBatchingPeriod={50}
+              disableVirtualization={false}
+              getItemLayout={(data, index) => ({
+                length: 216, // height + marginBottom
+                offset: 216 * Math.floor(index / 2),
+                index,
+              })}
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10,
+              }}
             />
           </>
         )}

@@ -20,6 +20,8 @@ export default function ClipCameraScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [pickerVisible, setPickerVisible] = useState<null | 'timer'>(null);
   const [pickerY, setPickerY] = useState<number>(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [isCountingDown, setIsCountingDown] = useState(false);
   const controlRefs = {
     timer: useRef<View>(null),
   };
@@ -39,6 +41,31 @@ export default function ClipCameraScreen() {
   // UI handlers
   const handleToggleFlash = () => setFlash(flash === 'off' ? 'on' : 'off');
   const handleFlip = () => setCameraType(cameraType === 'back' ? 'front' : 'back');
+
+  // Countdown timer function
+  const startCountdown = () => {
+    if (timer === 0) {
+      handleCapture();
+      return;
+    }
+    
+    setIsCountingDown(true);
+    setCountdown(timer);
+    
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev && prev > 1) {
+          return prev - 1;
+        } else {
+          clearInterval(countdownInterval);
+          setIsCountingDown(false);
+          setCountdown(null);
+          handleCapture();
+          return null;
+        }
+      });
+    }, 1000);
+  };
 
   // Photo capture
   const handleCapture = async () => {
@@ -123,35 +150,61 @@ export default function ClipCameraScreen() {
             style={styles.controlButton}
             onPress={() => {
               setPickerVisible('timer');
-              setPickerY(controlRefs.timer.current?.measureInWindow((x, y) => setPickerY(y)) || 0);
+              // Position the picker right next to the timer button
+              setPickerY(controlRefs.timer.current?.measureInWindow((x, y) => y) || 0);
             }}
           >
-            <MaterialCommunityIcons name="timer" size={24} color="#fff" />
+            <MaterialCommunityIcons name="timer-outline" size={28} color="#fff" />
             <Text style={styles.controlText}>{timer === 0 ? 'Off' : `${timer}s`}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlButton} onPress={handleToggleFlash}>
-            <MaterialCommunityIcons name={flash === 'off' ? 'flash-off' : 'flash'} size={24} color="#fff" />
+            <MaterialCommunityIcons name={flash === 'off' ? 'flash-off' : 'flash'} size={28} color="#fff" />
             <Text style={styles.controlText}>{flash === 'off' ? 'Off' : 'On'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlButton} onPress={handleFlip}>
-            <MaterialCommunityIcons name="camera-switch" size={24} color="#fff" />
+            <MaterialCommunityIcons name="camera-switch" size={28} color="#fff" />
             <Text style={styles.controlText}>Flip</Text>
           </TouchableOpacity>
         </View>
 
         {/* Bottom Bar */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.captureButton} onPress={handleCapture}>
+          <TouchableOpacity 
+            style={styles.captureButton} 
+            onPress={startCountdown}
+            disabled={isCountingDown}
+          >
             <View style={styles.innerPhoto} />
           </TouchableOpacity>
         </View>
 
-        {/* Picker Floating View */}
+        {/* Countdown Display */}
+        {isCountingDown && countdown && (
+          <View style={styles.countdownOverlay}>
+            <Text style={styles.countdownText}>{countdown}</Text>
+          </View>
+        )}
+
+        {/* Picker Floating View - Positioned next to timer button */}
         {pickerVisible && (
           <Pressable style={styles.pickerOverlay} onPress={() => setPickerVisible(null)}>
-            <View style={[styles.pickerContainer, { top: pickerY - 100 }]}>
+            <View style={{ 
+              position: 'absolute',
+              right: 140,
+              top: '50%',
+              transform: [{ translateY: -60 }],
+              backgroundColor: '#222',
+              borderRadius: 12,
+              paddingVertical: 8,
+              minWidth: 80,
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}>
               {pickerOptions[pickerVisible].map((value) => (
                 <TouchableOpacity
                   key={value}
@@ -215,18 +268,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     top: '50%',
-    transform: [{ translateY: -100 }],
+    transform: [{ translateY: -120 }],
     alignItems: 'center',
-    gap: 24,
+    gap: 32,
   },
   controlButton: {
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   controlText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   },
   bottomBar: {
     position: 'absolute',
@@ -264,15 +321,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 20,
   },
-  pickerContainer: {
-    position: 'absolute',
-    right: 20,
-    backgroundColor: '#222',
-    borderRadius: 12,
-    paddingVertical: 8,
-    minWidth: 80,
-    alignItems: 'center',
-  },
   pickerOption: {
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -289,6 +337,22 @@ const styles = StyleSheet.create({
   },
   pickerOptionTextSelected: {
     color: '#000',
+    fontWeight: 'bold',
+  },
+  countdownOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -50 }, { translateY: -50 }],
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    zIndex: 30,
+  },
+  countdownText: {
+    color: '#fff',
+    fontSize: 60,
     fontWeight: 'bold',
   },
 }); 
