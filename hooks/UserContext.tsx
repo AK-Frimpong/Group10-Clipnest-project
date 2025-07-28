@@ -3,7 +3,9 @@ import React, { createContext, ReactNode, useContext, useState } from 'react';
 export type User = {
   id: string;
   username: string;
-  // Add more fields as needed (email, avatar, etc.)
+  name: string;
+  bio: string;
+  avatar: string | null;
 };
 
 export type UserContextType = {
@@ -18,7 +20,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // For development/testing, provide a default user
   const [user, setUser] = useState<User | null>({
     id: 'alvinn',
-    username: 'alvinn'
+    username: 'alvinn',
+    name: 'Alvin',
+    bio: 'Basketball, Fragrance, Cars',
+    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
   });
 
   const logout = () => setUser(null);
