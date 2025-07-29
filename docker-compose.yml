@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: messaging-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: messaging_app
+      MYSQL_USER: messaging_user
+      MYSQL_PASSWORD: messaging_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - messaging-network
+
+  app:
+    build: .
+    container_name: messaging-app
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/messaging_app?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: messaging_user
+      SPRING_DATASOURCE_PASSWORD: messaging_password
+      JWT_SECRET: mySecretKey123456789012345678901234567890
+    ports:
+      - "8080:8080"
+    networks:
+      - messaging-network
+
+volumes:
+  mysql_data:
+
+networks:
+  messaging-network:
+    driver: bridge
